@@ -123,11 +123,33 @@
             [bottomBar setHidden:YES];
         }
         if(page == 1){
+            [bottomBar setHidden:NO];
             
-            [bottomBar setHidden:YES];
-            UIAlertView *push = [[UIAlertView alloc] initWithTitle: @"We need your location" message: @"You must give permission to use location services" delegate:nil cancelButtonTitle: @"OK" otherButtonTitles: nil];
-            push.delegate = self;
-            [push show];
+            //        UIAlertView *requestContacts = [[UIAlertView alloc] initWithTitle: @"Can we have access to your address book?" message: @"You must give the app permission to your contact list" delegate:nil cancelButtonTitle: @"OK" otherButtonTitles: nil];
+            //        requestContacts.delegate = self;
+            //        [requestContacts show];
+            
+            CGRect screenRect = self.view.bounds;
+            CGFloat screenWidth = screenRect.size.width;
+            CGFloat screenHeight = screenRect.size.height;
+            [UIView animateWithDuration:0.5 animations:^{
+                CGRect frame = bottomBar.frame;
+                frame.origin.y = 20;
+                bottomBar.frame = frame;
+                frame = publicFeed.frame;
+                frame.origin.y = 90;
+                frame.size.width = screenWidth;
+                frame.size.height = screenHeight-90;
+                publicFeed.frame = frame;
+                [pageControl setHidden:YES];
+                
+            } completion:^(BOOL finished) {
+            }];
+
+//            [bottomBar setHidden:YES];
+//            UIAlertView *push = [[UIAlertView alloc] initWithTitle: @"We need your location" message: @"You must give permission to use location services" delegate:nil cancelButtonTitle: @"OK" otherButtonTitles: nil];
+//            push.delegate = self;
+////            [push show];
             
         }
         if(page == 2){
@@ -321,6 +343,7 @@
         tutorial = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
         [self.view addSubview:tutorial];
         tutorial.contentSize = CGSizeMake(screenWidth*4, screenHeight-20);
+        tutorial.contentSize = CGSizeMake(screenWidth*2, screenHeight-20);
         tutorial.backgroundColor = [UIColor whiteColor];
         tutorial.pagingEnabled = YES;
         tutorial.delegate = self;

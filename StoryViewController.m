@@ -170,7 +170,7 @@
     CGFloat minus = (screenHeight - ratio)/2;
     
     
-    UIView *apl = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
+    UIView *apl = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [avAsset naturalSize].width, screenHeight)];
     [apl setBackgroundColor:[UIColor blackColor]];
     [mainView addSubview:apl];
     [apl setUserInteractionEnabled:YES];

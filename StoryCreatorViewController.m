@@ -637,18 +637,18 @@
         // 2 - set up the parent layer
         CALayer *parentLayer = [CALayer layer];
         CALayer *videoLayer = [CALayer layer];
-        parentLayer.frame = CGRectMake(0, 0,[avAsset naturalSize].width,screenHeight);
+        parentLayer.frame = CGRectMake(0, 0,screenWidth,screenHeight);
         
         float   angle = M_PI/2 + M_PI;  //rotate 180°, or 1 π radian
         videoLayer.transform = CATransform3DMakeRotation(angle, 0, 0.0, 1.0);
-        [videoLayer setFrame:CGRectMake(-screenWidth/2, 0,[avAsset naturalSize].width,screenHeight)];
+        [videoLayer setFrame:CGRectMake(-([avAsset naturalSize].width - screenWidth)-24, 0,[avAsset naturalSize].width+24,screenHeight)];
         
         [parentLayer addSublayer:videoLayer];
         [parentLayer addSublayer:overlayLayer];
         
         
         AVMutableVideoComposition* videoComp = [AVMutableVideoComposition videoComposition];
-        videoComp.renderSize = CGSizeMake(screenWidth, screenHeight);
+        videoComp.renderSize = CGSizeMake([avAsset naturalSize].width, screenHeight);
 
         videoComp.frameDuration = CMTimeMake(1, 30);
         videoComp.animationTool = [AVVideoCompositionCoreAnimationTool videoCompositionCoreAnimationToolWithPostProcessingAsVideoLayer:videoLayer inLayer:parentLayer];
