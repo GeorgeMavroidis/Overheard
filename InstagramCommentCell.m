@@ -38,8 +38,8 @@
         time.textColor = [UIColor lightGrayColor];
         [self addSubview:time];
         
-        text = [[UITextView alloc] initWithFrame:CGRectMake(45, 22, screenWidth-50, 1000)];
-        text.font = [UIFont fontWithName:@"HelveticaNeue-Thin" size:15.0f];
+        text = [[UITextView alloc] initWithFrame:CGRectMake(5, 0, screenWidth-50, 1000)];
+        text.font = [UIFont fontWithName:@"AvenirNext-Medium" size:15.0f];
         text.userInteractionEnabled = NO;
         [text setBackgroundColor:[UIColor clearColor]];
         [self addSubview:text];

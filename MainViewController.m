@@ -16,9 +16,10 @@
  #import <AddressBookUI/AddressBookUI.h>
 #import <CoreLocation/CoreLocation.h>
 #import <Parse/Parse.h>
-
+#import "SnapchatViewController.h"
 #import "MBProgressHUD.h"
 #include <stdlib.h>
+#import "StoryCreatorViewController.h"
 
 #define IS_OS_8_OR_LATER ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0)
 
@@ -31,12 +32,14 @@
     Compose *compose;
     UIImagePickerController *picker;
     UIPageControl *pageControl;
-    UIScrollView *tutorial;
+    UIScrollView *tutorial, *mainScrollView;
     
     CLLocationManager *locationManager;
     
     MBProgressHUD *HUD;
     MBProgressHUD *refreshHUD;
+    SnapchatViewController *snap;
+    UIImagePickerController *storyPicker;
 }
 
 @end
@@ -50,9 +53,24 @@
 }
 -(void)viewWillAppear:(BOOL)animated{
     [super viewWillAppear:animated];
+    self.screenName = @"Overheard @ Guelph";
+//    
+//    [self.navigationController setNavigationBarHidden:YES];
     
-    [self.navigationController setNavigationBarHidden:YES animated:NO];
-    [self.navigationController.navigationBar setTintColor:[UIColor blackColor]];
+    
+    [self.navigationController.navigationBar setBarTintColor:[UIColor colorWithRed:166.0/255.0 green:0/255.0 blue:0/255.0 alpha:1]];
+    [self.navigationController.navigationBar setTintColor:[UIColor whiteColor]];
+    [[UIApplication sharedApplication] setStatusBarStyle: UIStatusBarStyleBlackOpaque];
+    [self.navigationController.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName : [UIColor whiteColor]}];
+//    [self.navigationController setNavigationBarHidden:YES animated:NO];
+//    [self.navigationController.navigationBar setTintColor:[UIColor blackColor]];
+    
+//    self.navigationController.navigationBar.translucent = NO;
+    
+//    [self.navigationController.navigationBar setBackgroundImage:[UIImage new]  forBarMetrics:UIBarMetricsDefault];
+//    self.navigationController.navigationBar.shadowImage = [UIImage new];
+//    self.navigationController.navigationBar.translucent = YES;
+//    self.navigationController.view.backgroundColor = [UIColor clearColor];
 }
 -(void)viewDidAppear:(BOOL)animated{
     defaults = [NSUserDefaults standardUserDefaults];
@@ -63,19 +81,23 @@
         [bottomBar setHidden:YES];
         [self setTitle:@"Overheard @ Guelph"];
         CGRect frame = publicFeed.frame;
-        frame.origin.y -= 30;
-        frame.size.height += 30;
+        frame.origin.y -= 40;
+        frame.size.height += 40;
         publicFeed.frame = frame;
         
         frame = ptv.view.frame;
         frame.size.height += 50;
         ptv.view.frame = frame;
+    }else{
+        
+        [self.navigationController setNavigationBarHidden:YES];
     }
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     CGFloat pageWidth = scrollView.frame.size.width;
     int page = floor((scrollView.contentOffset.x - pageWidth / 2 ) / pageWidth) + 1; //this provide you the page number
     pageControl.currentPage = page;// this displays the white dot as current page
+    
     
 }
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
@@ -89,67 +111,97 @@
     CGFloat pageWidth = scrollView.frame.size.width;
     int page = floor((scrollView.contentOffset.x - pageWidth / 2 ) / pageWidth) + 1; //this provide you the page number
 //    pageControl.currentPage = page;// this displays the white dot as current page
+    defaults = [NSUserDefaults standardUserDefaults];
     
-    if(page == 0){
-        
-        [bottomBar setHidden:YES];
-    }
-    if(page == 1){
-        
-        [bottomBar setHidden:YES];
-        UIAlertView *push = [[UIAlertView alloc] initWithTitle: @"We need your location" message: @"You must give permission to use location services" delegate:nil cancelButtonTitle: @"OK" otherButtonTitles: nil];
-        push.delegate = self;
-        [push show];
-        
-    }
-    if(page == 2){
-        [bottomBar setHidden:YES];
-        
-        if ([[[UIApplication sharedApplication] delegate] respondsToSelector:@selector(registerUserNotificationSettings:)]) {
-            UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert |
-                                                            UIUserNotificationTypeBadge |
-                                                            UIUserNotificationTypeSound);
-            UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes
-                                                                                     categories:nil];
-            [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
-            [[UIApplication sharedApplication] registerForRemoteNotifications];
-        } else {
-            // Register for Push Notifications before iOS 8
-            [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge |
-                                                             UIRemoteNotificationTypeAlert |
-                                                             UIRemoteNotificationTypeSound)];
+    if([defaults objectForKey:@"facebook_data"] != nil){
+        if(page == 1){
+            [self initCamera];
         }
-        
-    }
-    if(page == 3) {
-        
-        [bottomBar setHidden:NO];
-        
-        UIAlertView *requestContacts = [[UIAlertView alloc] initWithTitle: @"Can we have access to your address book?" message: @"You must give the app permission to your contact list" delegate:nil cancelButtonTitle: @"OK" otherButtonTitles: nil];
-        requestContacts.delegate = self;
-        [requestContacts show];
-        
-        CGRect screenRect = self.view.bounds;
-        CGFloat screenWidth = screenRect.size.width;
-        CGFloat screenHeight = screenRect.size.height;
-        [UIView animateWithDuration:0.5 animations:^{
-            CGRect frame = bottomBar.frame;
-            frame.origin.y = 20;
-            bottomBar.frame = frame;
-            frame = publicFeed.frame;
-            frame.origin.y = 90;
-            frame.size.width = screenWidth;
-            frame.size.height = screenHeight-90;
-            publicFeed.frame = frame;
-            [pageControl setHidden:YES];
+    }else{
+        if(page == 0){
             
-        } completion:^(BOOL finished) {
-        }];
-        
+            [bottomBar setHidden:YES];
+        }
+        if(page == 1){
+            
+            [bottomBar setHidden:YES];
+            UIAlertView *push = [[UIAlertView alloc] initWithTitle: @"We need your location" message: @"You must give permission to use location services" delegate:nil cancelButtonTitle: @"OK" otherButtonTitles: nil];
+            push.delegate = self;
+            [push show];
+            
+        }
+        if(page == 2){
+            [bottomBar setHidden:YES];
+            
+            if ([[[UIApplication sharedApplication] delegate] respondsToSelector:@selector(registerUserNotificationSettings:)]) {
+                UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert |
+                                                                UIUserNotificationTypeBadge |
+                                                                UIUserNotificationTypeSound);
+                UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes
+                                                                                         categories:nil];
+                [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+                [[UIApplication sharedApplication] registerForRemoteNotifications];
+            } else {
+                // Register for Push Notifications before iOS 8
+                [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge |
+                                                                                       UIRemoteNotificationTypeAlert |
+                                                                                       UIRemoteNotificationTypeSound)];
+            }
+            
+        }
+        if(page == 3) {
+            
+            [bottomBar setHidden:NO];
+            
+            //        UIAlertView *requestContacts = [[UIAlertView alloc] initWithTitle: @"Can we have access to your address book?" message: @"You must give the app permission to your contact list" delegate:nil cancelButtonTitle: @"OK" otherButtonTitles: nil];
+            //        requestContacts.delegate = self;
+            //        [requestContacts show];
+            
+            CGRect screenRect = self.view.bounds;
+            CGFloat screenWidth = screenRect.size.width;
+            CGFloat screenHeight = screenRect.size.height;
+            [UIView animateWithDuration:0.5 animations:^{
+                CGRect frame = bottomBar.frame;
+                frame.origin.y = 20;
+                bottomBar.frame = frame;
+                frame = publicFeed.frame;
+                frame.origin.y = 90;
+                frame.size.width = screenWidth;
+                frame.size.height = screenHeight-90;
+                publicFeed.frame = frame;
+                [pageControl setHidden:YES];
+                
+            } completion:^(BOOL finished) {
+            }];
+            
+        }
+        if(page == 4) {
+            
+        }
     }
-    if(page == 4) {
-        
-    }
+}
+-(void)initCamera{
+    
+//    
+//    CGRect screenRect = self.view.bounds;
+//    CGFloat screenWidth = screenRect.size.width;
+//    CGFloat screenHeight = screenRect.size.height;
+//    storyPicker = nil;
+//    storyPicker = [[UIImagePickerController alloc] init];
+//
+//    storyPicker.sourceType = UIImagePickerControllerSourceTypeCamera;
+//    storyPicker.cameraCaptureMode = UIImagePickerControllerCameraCaptureModePhoto;
+//    storyPicker.cameraDevice = UIImagePickerControllerCameraDeviceRear;
+//    storyPicker.showsCameraControls = NO;
+////    storyPicker.navigationBarHidden = YES;
+////    storyPicker.toolbarHidden = YES;
+////    storyPicker.wantsFullScreenLayout = YES;
+//    
+//    [snap.view addSubview:storyPicker.view];
+//    storyPicker.view.frame = CGRectMake(0, screenHeight-200, screenWidth, screenHeight);
+}
+-(void)nullCamera{
+    
 }
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
     CGFloat pageWidth = tutorial.frame.size.width;
@@ -232,6 +284,8 @@
     bottomBar.frame = CGRectMake(0, screenHeight-70, screenWidth, 80);
     bottomBar.backgroundColor = [UIColor whiteColor];
     
+    snap = [[SnapchatViewController alloc] init];
+    
     
    
     
@@ -242,13 +296,28 @@
     
     NSLog(@"%@", [defaults objectForKey:@"facebook_data"]);
     if([defaults objectForKey:@"facebook_data"] != nil){
+        mainScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
+        mainScrollView.delegate = self;
+        [mainScrollView setContentSize:CGSizeMake(screenWidth*2, screenHeight-10)];
+
+        [mainScrollView setPagingEnabled:YES];
+        [mainScrollView setUserInteractionEnabled:YES];
+        [mainScrollView setBounces:NO];
         
-        [self.view addSubview:compose.view];
-        [self.view addSubview:publicFeed];
+        [self.view addSubview:mainScrollView];
+        [mainScrollView addSubview:compose.view];
+        [mainScrollView addSubview:publicFeed];
         [pageControl setHidden:YES];
         [self noAction];
-    }else{
         
+        [mainScrollView addSubview:snap.view];
+        snap.view.frame = CGRectMake(screenWidth, 60, screenWidth, screenHeight);
+        [self addChildViewController:snap];
+        
+        
+        
+        
+    }else{
         tutorial = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
         [self.view addSubview:tutorial];
         tutorial.contentSize = CGSizeMake(screenWidth*4, screenHeight-20);
@@ -362,7 +431,7 @@
         layer.shadowOpacity = 0.2;
         layer.shadowRadius = 10;
         
-        UITapGestureRecognizer *touch = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(action)];;
+        UITapGestureRecognizer *touch = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(action)];
         [bottomBar addGestureRecognizer:touch];
         
         
@@ -393,6 +462,9 @@
     UIBarButtonItem *composed = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemCompose target:self action:@selector(compose)];
     self.navigationItem.rightBarButtonItem=composed;
     
+    UIBarButtonItem *camera = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemCamera target:self action:@selector(story)];
+    self.navigationItem.leftBarButtonItem = camera;
+    
     if([defaults objectForKey:@"unlocked"] == nil){
         UIButton *button =  [UIButton buttonWithType:UIButtonTypeCustom];
         [button setImage:[UIImage imageNamed:@"locsk.png"] forState:UIControlStateNormal];
@@ -402,7 +474,7 @@
         [label setFont:[UIFont fontWithName:@"Arial-BoldMT" size:13]];
         [label setBackgroundColor:[UIColor clearColor]];
         UIBarButtonItem *barButton = [[UIBarButtonItem alloc] initWithCustomView:button];
-        self.navigationItem.leftBarButtonItem = barButton;
+//        self.navigationItem.leftBarButtonItem = barButton;
     }
     //
 //    picker.cameraViewTransform = CGAffineTransformMakeScale(scale, scale);
@@ -414,6 +486,10 @@
     refreshHUD.delegate = self;
     
     
+}
+-(void)launchStoryCreator{
+    StoryCreatorViewController *storyVC = [[StoryCreatorViewController alloc] init];
+    [self.navigationController pushViewController:storyVC animated:NO];
 }
 -(void)agggg{
     NSLog(@"here");
@@ -559,6 +635,19 @@
     [compose.mainText becomeFirstResponder];
     
 }
+-(void)story{
+//    SnapchatViewController *snap = [[SnapchatViewController alloc] init];
+//    
+//    [self.navigationController pushViewController:snap animated:YES];
+    
+    CGRect screenRect = self.view.bounds;
+    CGFloat screenWidth = screenRect.size.width;
+    CGFloat screenHeight = screenRect.size.height;
+    [mainScrollView setContentOffset:CGPointMake(screenWidth, 0) animated:YES];
+    [self initCamera];
+}
+
+
 -(void)compose{
     
     CGRect screenRect = self.view.bounds;
@@ -645,8 +734,11 @@
         NSString *name = @"";
         NSString *profile_picture = @"";
         if([compose.anon isOn]){
-            user = @"Anonymous";
+            //            user = @"Anonymous";
+            user = [NSString stringWithFormat:@"Anonymous-%@",[[defaults objectForKey:@"facebook_data"] valueForKey:@"id"]];
             name = @"Anonymous";
+            
+//            name = [[defaults objectForKey:@"facebook_data"] objectForKey:@"name"];
             profile_picture = @"";
         }else{
             defaults = [NSUserDefaults standardUserDefaults];
@@ -716,8 +808,11 @@
     } completion:^(BOOL finished) {
         UIBarButtonItem *composeBut = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemCompose target:self action:@selector(compose)];
         self.navigationItem.rightBarButtonItem=composeBut;
+        UIBarButtonItem *camera = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemCamera target:self action:@selector(story)];
+        self.navigationItem.leftBarButtonItem = camera;
+        [self initCamera];
         //        UIBarButtonItem *post = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(compose)];
-        self.navigationItem.leftBarButtonItem=nil;
+//        self.navigationItem.leftBarButtonItem=nil;
         self.title = @"Overheard @ Guelph";
         if([defaults objectForKey:@"unlocked"] == nil){
             UIButton *button =  [UIButton buttonWithType:UIButtonTypeCustom];
@@ -728,7 +823,7 @@
             [label setFont:[UIFont fontWithName:@"Arial-BoldMT" size:13]];
             [label setBackgroundColor:[UIColor clearColor]];
             UIBarButtonItem *barButton = [[UIBarButtonItem alloc] initWithCustomView:button];
-            self.navigationItem.leftBarButtonItem = barButton;
+//            self.navigationItem.leftBarButtonItem = barButton;
         }
         
         [self.navigationController setNavigationBarHidden:NO animated:YES];
@@ -736,9 +831,9 @@
     }];
 
 }
-- (BOOL)prefersStatusBarHidden {
-    return YES;
-}
+//- (BOOL)prefersStatusBarHidden {
+//    return YES;
+//}
 -(void) pan:(UIPanGestureRecognizer *)sender{
     
     CGPoint translation = [(UIPanGestureRecognizer*)sender translationInView:self.view];
@@ -766,12 +861,24 @@
     [pfuser signUpInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
         if (!error) {
             // Hooray! Let them use the app now.
+            PFInstallation *installation = [PFInstallation currentInstallation];
+            installation[@"user"] = [PFUser currentUser];
+            installation[@"facebook_data"] = user;
+            installation[@"name"] = user.name;
+            installation[@"username"] = user.id;
+            [installation saveInBackground];
         } else {
             NSString *errorString = [error userInfo][@"error"];
             [PFUser logInWithUsernameInBackground:user.id password:@""
                                             block:^(PFUser *pfuser, NSError *error) {
                                                 if (user) {
                                                     NSLog(@"%@", pfuser);
+                                                    PFInstallation *installation = [PFInstallation currentInstallation];
+                                                    installation[@"user"] = [PFUser currentUser];
+                                                    installation[@"facebook_data"] = user;
+                                                    installation[@"name"] = user.name;
+                                                    installation[@"username"] = user.id;
+                                                    [installation saveInBackground];
                                                     // Do stuff after successful login.
                                                 } else {
                                                     // The login failed. Check error to see why.

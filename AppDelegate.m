@@ -12,7 +12,7 @@
 #import <FacebookSDK/FacebookSDK.h>
 #import <Parse/Parse.h>
 #import <ParseFacebookUtils/PFFacebookUtils.h>
-
+#import <GAI.h>
 @interface AppDelegate (){
     UINavigationController *mainNavController;
     MainViewController *connect;
@@ -29,6 +29,19 @@
     [Parse setApplicationId:@"tZEywFQKsSAWEVD8ddu9rmsMS7ArkpnsCXldmlFE"
                   clientKey:@"6YOdT6sxs9g85jKMaJK0fi8MkAKKQWIoludWcill"];
     [PFAnalytics trackAppOpenedWithLaunchOptions:launchOptions];
+    
+//    // Optional: automatically send uncaught exceptions to Google Analytics.
+//    [GAI sharedInstance].trackUncaughtExceptions = YES;
+//    
+//    // Optional: set Google Analytics dispatch interval to e.g. 20 seconds.
+//    [GAI sharedInstance].dispatchInterval = 20;
+//    
+//    // Optional: set Logger to VERBOSE for debug information.
+//    [[[GAI sharedInstance] logger] setLogLevel:kGAILogLevelVerbose];
+//    
+//    // Initialize tracker. Replace with your tracking ID.
+//    [[GAI sharedInstance] trackerWithTrackingId:@"UA-33179700-10"];
+    
     if ([application respondsToSelector:@selector(registerUserNotificationSettings:)]) {
         UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert |
                                                         UIUserNotificationTypeBadge |

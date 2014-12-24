@@ -9,7 +9,9 @@
 #import "PublicFeed.h"
 #import "FeedCell.h"
 #import "AsyncImageView.h"
-#import "UIImageView+WebCache.h"
+//#import "UIImageView+WebCache.h"
+#import <UIImageView+WebCache.h>
+#import "InstagramCommentViewController.h"
 
 
 @interface PublicFeed (){
@@ -36,7 +38,7 @@
 -(void)viewWillAppear:(BOOL)animated{
     [super viewWillAppear:animated];
     
-    [self.navigationController setNavigationBarHidden:YES animated:NO];
+//    [self.navigationController setNavigationBarHidden:NO animated:NO];
 }
 - (void)viewDidLoad
 {
@@ -231,138 +233,145 @@
     return [json count];
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    if([defaults objectForKey:@"facebook_data"] != nil){
-        
-    
-    CustomTableViewCell *temp = [tableView cellForRowAtIndexPath:indexPath];
-    
-    temp.selectionStyle = UITableViewCellSelectionStyleNone;
-    CGRect screenRect = [[UIScreen mainScreen] bounds];
-    CGFloat screenWidth = screenRect.size.width;
-    CGFloat screenHeight = screenRect.size.height;
-    
-    commentView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 50, screenWidth, screenHeight)];
-
-    [commentView setBackgroundColor:[UIColor whiteColor]];
-    [[[UIApplication sharedApplication] keyWindow] addSubview:commentView];
-    
-    mainPost = [[UIView alloc] init];
-    [mainPost setBackgroundColor:[UIColor whiteColor]];
-    [commentView addSubview:mainPost];
-    
-    CGRect cardframe = temp.card.frame;
-    cardframe.origin.y = temp.frame.origin.y- tableView.contentOffset.y;
-    cardframe.origin.x = temp.frame.origin.x;
-    cardframe.size.width = screenWidth;
-    mainPost.frame = cardframe;
-    
-    
-    commentView.contentSize = CGSizeMake(screenWidth, mainPost.frame.size.height+250);
-
-    
-    inputBar = [[UIView alloc] initWithFrame:CGRectMake(0, screenHeight-50, screenWidth, 50)];
-    [inputBar setBackgroundColor:[UIColor colorWithRed:230/255.0 green:230/255.0 blue:230/255.0 alpha:1]];
-    //    [self.view addSubview:inputBar];
-    [[UIApplication sharedApplication].delegate.window addSubview:inputBar];
-    
-    inputTextView = [[UITextView alloc] initWithFrame:CGRectMake(10, 10, inputBar.frame.size.width-90, 30)];
-    inputTextView.font = [UIFont fontWithName:@"HelveticaNeue" size:15];
-    [inputTextView.layer setCornerRadius:5.0f];
-    inputTextView.delegate = self;
-    UIView *tran = [[UIView alloc] initWithFrame:inputBar.frame];
-    [tran setBackgroundColor:[UIColor blackColor]];
-    [tran setAlpha:0.5];
-//    [self.view addSubview:tran];
-    placeholderLabel = [[UILabel alloc] initWithFrame:CGRectMake(9.0, .0, inputTextView.frame.size.width - 20.0, 34.0)];
-    [placeholderLabel setText:@"Add a comment..."];
-    // placeholderLabel is instance variable retained by view controller
-    [placeholderLabel setBackgroundColor:[UIColor clearColor]];
-    //[placeholderLabel setFont:[challengeDescription font]];
-    [placeholderLabel setTextColor:[UIColor lightGrayColor]];
-    
-    // textView is UITextView object you want add placeholder text to
-    [inputTextView addSubview:placeholderLabel];
-    
-    [inputBar addSubview:inputTextView];
-    
-    inputTextView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    commentView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    
-    sendText = [[UIView alloc] initWithFrame:CGRectMake(screenWidth-70, 10, 60, 30)];
-    [sendText setBackgroundColor:[UIColor colorWithRed:61/255.0 green:175/255.0 blue:4/255.0 alpha:1]];
-    send = [[UILabel alloc] initWithFrame:CGRectMake(10.0, -2.0, inputTextView.frame.size.width - 20.0, 34.0)];
-    [send setText:@"Send"];
-    [send setTextColor:[UIColor clearColor]];
-    [send setTextColor:[UIColor colorWithRed:255/255.0 green:255/255.0 blue:255/255.0 alpha:0.5]];
-    [send setTextColor:[UIColor whiteColor]];
-    [sendText addSubview:send];
-    [sendText.layer setCornerRadius:5.0f];
-    
-    
-    [inputBar addSubview:sendText];
-    
-    UITapGestureRecognizer *sendt = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(sendComment)];
-    [sendText setUserInteractionEnabled:YES];
-    [sendText addGestureRecognizer:sendt];
-    
-    
-    
-    NSString *t = [[json objectAtIndex:indexPath.row] objectForKey:@"post"];
+    NSString *ta = [[json objectAtIndex:indexPath.row] objectForKey:@"post"];
     NSString *tagg =[[json objectAtIndex:indexPath.row] objectForKey:@"id"];
-    postid = tagg;
+//        postid = tagg;
     
-    [self fetchComments:tagg];
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-//        [self fetchComments:tagg];
-        dispatch_sync(dispatch_get_main_queue(), ^{
-            
-        });
-    });
-
-    y_retained = temp.frame.origin.y- tableView.contentOffset.y;
+    InstagramCommentViewController *t = [[InstagramCommentViewController alloc] initWithMedia:tagg];
+    [self.navigationController pushViewController:t animated:true];
     
-    CustomTableViewCell *new = [[CustomTableViewCell alloc] init];
-    new = [self createCustomCellFromData:indexPath];
-        
-    [mainPost addSubview:lower];
-    [mainPost addSubview:new];
-        
-
-    CGRect lowerframe = lower.frame;
-    lowerframe.origin.y = 0;
-    lowerframe.origin.x = 0;
-    lower.frame = lowerframe;
-    
-    [UIView animateWithDuration:0.6 delay:0 options:UIViewAnimationCurveEaseIn animations:^{
-        CGRect frame = mainPost.frame;
-        frame.origin.y = 0;
-        frame.origin.x = 0;
-        mainPost.frame = frame;
-        
-        CGRect headerFrame = mainPostHeader.frame;
-        headerFrame.origin.y = 0;
-        mainPostHeader.frame = headerFrame;
-        
-        
-        CGRect commentFrame = comment.frame;
-        commentFrame.origin.y = mainPost.frame.origin.y + mainPost.frame.size.height;
-        comment.frame = commentFrame;
-        
-        [self.navigationController setNavigationBarHidden:YES animated:YES];
-        [[UIApplication sharedApplication] setStatusBarHidden:YES
-                                                withAnimation:UIStatusBarAnimationSlide];
-    } completion:^(BOOL finished) {
-        
-        
-    }];
-    }else{
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Please login"
-                                           message:@"You need to log in to access certain features"
-                                          delegate:self cancelButtonTitle:@"Ok"
-                                 otherButtonTitles:nil];
-        [alert show];
-    }
+//    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//    if([defaults objectForKey:@"facebook_data"] != nil){
+//        
+//    
+//    CustomTableViewCell *temp = [tableView cellForRowAtIndexPath:indexPath];
+//    
+//    temp.selectionStyle = UITableViewCellSelectionStyleNone;
+//    CGRect screenRect = [[UIScreen mainScreen] bounds];
+//    CGFloat screenWidth = screenRect.size.width;
+//    CGFloat screenHeight = screenRect.size.height;
+//    
+//    commentView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 50, screenWidth, screenHeight)];
+//
+//    [commentView setBackgroundColor:[UIColor whiteColor]];
+//    [[[UIApplication sharedApplication] keyWindow] addSubview:commentView];
+//    
+//    mainPost = [[UIView alloc] init];
+//    [mainPost setBackgroundColor:[UIColor whiteColor]];
+//    [commentView addSubview:mainPost];
+//    
+//    CGRect cardframe = temp.card.frame;
+//    cardframe.origin.y = temp.frame.origin.y- tableView.contentOffset.y;
+//    cardframe.origin.x = temp.frame.origin.x;
+//    cardframe.size.width = screenWidth;
+//    mainPost.frame = cardframe;
+//    
+//    
+//    commentView.contentSize = CGSizeMake(screenWidth, mainPost.frame.size.height+250);
+//
+//    
+//    inputBar = [[UIView alloc] initWithFrame:CGRectMake(0, screenHeight-50, screenWidth, 50)];
+//    [inputBar setBackgroundColor:[UIColor colorWithRed:230/255.0 green:230/255.0 blue:230/255.0 alpha:1]];
+//    //    [self.view addSubview:inputBar];
+//    [[UIApplication sharedApplication].delegate.window addSubview:inputBar];
+//    
+//    inputTextView = [[UITextView alloc] initWithFrame:CGRectMake(10, 10, inputBar.frame.size.width-90, 30)];
+//    inputTextView.font = [UIFont fontWithName:@"HelveticaNeue" size:15];
+//    [inputTextView.layer setCornerRadius:5.0f];
+//    inputTextView.delegate = self;
+//    UIView *tran = [[UIView alloc] initWithFrame:inputBar.frame];
+//    [tran setBackgroundColor:[UIColor blackColor]];
+//    [tran setAlpha:0.5];
+////    [self.view addSubview:tran];
+//    placeholderLabel = [[UILabel alloc] initWithFrame:CGRectMake(9.0, .0, inputTextView.frame.size.width - 20.0, 34.0)];
+//    [placeholderLabel setText:@"Add a comment..."];
+//    // placeholderLabel is instance variable retained by view controller
+//    [placeholderLabel setBackgroundColor:[UIColor clearColor]];
+//    //[placeholderLabel setFont:[challengeDescription font]];
+//    [placeholderLabel setTextColor:[UIColor lightGrayColor]];
+//    
+//    // textView is UITextView object you want add placeholder text to
+//    [inputTextView addSubview:placeholderLabel];
+//    
+//    [inputBar addSubview:inputTextView];
+//    
+//    inputTextView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
+//    commentView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
+//    
+//    sendText = [[UIView alloc] initWithFrame:CGRectMake(screenWidth-70, 10, 60, 30)];
+//    [sendText setBackgroundColor:[UIColor colorWithRed:61/255.0 green:175/255.0 blue:4/255.0 alpha:1]];
+//    send = [[UILabel alloc] initWithFrame:CGRectMake(10.0, -2.0, inputTextView.frame.size.width - 20.0, 34.0)];
+//    [send setText:@"Send"];
+//    [send setTextColor:[UIColor clearColor]];
+//    [send setTextColor:[UIColor colorWithRed:255/255.0 green:255/255.0 blue:255/255.0 alpha:0.5]];
+//    [send setTextColor:[UIColor whiteColor]];
+//    [sendText addSubview:send];
+//    [sendText.layer setCornerRadius:5.0f];
+//    
+//    
+//    [inputBar addSubview:sendText];
+//    
+//    UITapGestureRecognizer *sendt = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(sendComment)];
+//    [sendText setUserInteractionEnabled:YES];
+//    [sendText addGestureRecognizer:sendt];
+//    
+//    
+//    
+//    NSString *t = [[json objectAtIndex:indexPath.row] objectForKey:@"post"];
+//    NSString *tagg =[[json objectAtIndex:indexPath.row] objectForKey:@"id"];
+//    postid = tagg;
+//    
+//    [self fetchComments:tagg];
+//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+////        [self fetchComments:tagg];
+//        dispatch_sync(dispatch_get_main_queue(), ^{
+//            
+//        });
+//    });
+//
+//    y_retained = temp.frame.origin.y- tableView.contentOffset.y;
+//    
+//    CustomTableViewCell *new = [[CustomTableViewCell alloc] init];
+//    new = [self createCustomCellFromData:indexPath];
+//        
+//    [mainPost addSubview:lower];
+//    [mainPost addSubview:new];
+//        
+//
+//    CGRect lowerframe = lower.frame;
+//    lowerframe.origin.y = 0;
+//    lowerframe.origin.x = 0;
+//    lower.frame = lowerframe;
+//    
+//    [UIView animateWithDuration:0.6 delay:0 options:UIViewAnimationCurveEaseIn animations:^{
+//        CGRect frame = mainPost.frame;
+//        frame.origin.y = 0;
+//        frame.origin.x = 0;
+//        mainPost.frame = frame;
+//        
+//        CGRect headerFrame = mainPostHeader.frame;
+//        headerFrame.origin.y = 0;
+//        mainPostHeader.frame = headerFrame;
+//        
+//        
+//        CGRect commentFrame = comment.frame;
+//        commentFrame.origin.y = mainPost.frame.origin.y + mainPost.frame.size.height;
+//        comment.frame = commentFrame;
+//        
+//        [self.navigationController setNavigationBarHidden:YES animated:YES];
+//        [[UIApplication sharedApplication] setStatusBarHidden:YES
+//                                                withAnimation:UIStatusBarAnimationSlide];
+//    } completion:^(BOOL finished) {
+//        
+//        
+//    }];
+//    }else{
+//        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Please login"
+//                                           message:@"You need to log in to access certain features"
+//                                          delegate:self cancelButtonTitle:@"Ok"
+//                                 otherButtonTitles:nil];
+//        [alert show];
+//    }
     
 }
 -(void)sendComment{
@@ -501,8 +510,14 @@
     //    NSLog(@"%@", t);
     cell.textView.text = t;
     NSString *u = [[json objectAtIndex:indexPath.row] objectForKey:@"user"];
-    if([u isEqualToString:@"Anonymous"]){
+//    if([u isEqualToString:@"Anonymous"]){
+//        u = @"Anonymous Gryphon";
+//    }
+    if ([u rangeOfString:@"Anonymous"].location == NSNotFound) {
+        
+    } else {
         u = @"Anonymous Gryphon";
+        
     }
     cell.usernameLabel.text = u;
     
@@ -512,8 +527,13 @@
     if([prof isEqualToString:@""]){
         prof = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture", a];
     }
+    if([u isEqualToString:@"Anonymous Gryphon"]){
+        prof = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture", @"anonymous"];
+        
+    }
 //    cell.profileImage.imageURL = [NSURL URLWithString:prof];
-//    [cell.profileImage sd_setImageWithURL:[NSURL URLWithString:prof]];
+    
+    [cell.profileImage setImageWithURL:[NSURL URLWithString:prof] placeholderImage:[UIImage imageNamed:@""]];
 
 
 //    NSLog(prof);
@@ -522,7 +542,12 @@
     NSString *mainImage =[[json objectAtIndex:indexPath.row] objectForKey:@"image"];
     if(![mainImage isEqualToString:@""]){
 //        cell.mainImage.imageURL =[NSURL URLWithString:mainImage];
-//        [cell.mainImage setImageWithURL:[NSURL URLWithString:mainImage]];
+       [cell.mainImage setImageWithURL:[NSURL URLWithString:mainImage] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+//           CGRect frame = cell.mainImage.frame;
+//           frame.size.height = cell.mainImage.image.size.height;
+//           NSLog(@"%f", cell.mainImage.image.size.height);
+//           cell.mainImage.frame = frame;
+       }];
         cell.isPic = YES;
     }
     
@@ -546,10 +571,19 @@
 }
 -(void)flagContent{
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Flag" message: @"Do You Want To Flag This Content?" delegate: nil cancelButtonTitle:@"Yes" otherButtonTitles:@"Cancel",nil]; [alert show];
+    
 }
+#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 -(void)like:(UITapGestureRecognizer *)sender{
 //    NSLog(@"%d", (sender.view).tag);
-    CustomTableViewCell *tempcell = (CustomTableViewCell *)[sender.view superview];
+    CustomTableViewCell *tempcell;
+    if(SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(@"7.0")){
+        tempcell = [(CustomTableViewCell *)[sender.view superview] superview];
+        
+    }else{
+        
+        tempcell = (CustomTableViewCell *)[sender.view superview];
+    }
     
     NSLog(@"%@", tempcell.likes.text);
     NSString *ids = [NSString stringWithFormat:@"%d",(sender.view).tag];
@@ -589,7 +623,14 @@
     
 }
 -(void)dislike:(UITapGestureRecognizer *)sender{
-    CustomTableViewCell *tempcell = (CustomTableViewCell *)[sender.view superview];
+    CustomTableViewCell *tempcell;
+    if(SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(@"7.0")){
+        tempcell = [(CustomTableViewCell *)[sender.view superview] superview];
+        
+    }else{
+        
+        tempcell = (CustomTableViewCell *)[sender.view superview];
+    }
     NSString *ids = [NSString stringWithFormat:@"%d",(sender.view).tag];
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     NSMutableArray *t = [d objectForKey:@"dislikes"];

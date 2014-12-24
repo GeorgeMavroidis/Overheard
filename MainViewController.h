@@ -9,8 +9,8 @@
 #import "MBProgressHUD.h"
 #import <FacebookSDK/FacebookSDK.h>
 #import "PublicFeed.h"
-
-@interface MainViewController : UIViewController <FBLoginViewDelegate, UIImagePickerControllerDelegate, UIScrollViewDelegate, UIAlertViewDelegate, CLLocationManagerDelegate, MBProgressHUDDelegate>
+#import "GAITrackedViewController.h"
+@interface MainViewController  : GAITrackedViewController <FBLoginViewDelegate, UIImagePickerControllerDelegate, UIScrollViewDelegate, UIAlertViewDelegate, CLLocationManagerDelegate, MBProgressHUDDelegate, UIScrollViewDelegate>
 
 -(void)compose;
 @property (strong, nonatomic) PublicFeed *ptv;
