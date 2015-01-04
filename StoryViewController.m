@@ -23,12 +23,20 @@
     BOOL first;
     
     NSTimer *timer;
+    
+    AVPlayerItem *avPlayerItem;
+    AVPlayer *avPlayer;
+    AVPlayerLayer *avPlayerLayer;
+    AVAsset *avAsset;
+    UIView *apl;
+    
+    BOOL drawingNext;
 }
 
 @end
 
 @implementation StoryViewController
-@synthesize array, removed;
+@synthesize array, removed, n;
 -(void)viewWillAppear:(BOOL)animated{
     [super viewWillDisappear:animated];
     [[UIApplication sharedApplication] setStatusBarHidden:YES animated:NO];
@@ -58,13 +66,16 @@
     rIndex = 0;
     removed = @"";
     lengthArray = [[NSMutableArray alloc] init];
+    n = [[NSMutableArray alloc] initWithArray:array];
+    
     if(array != nil){
         [self provisionStory];
         [NSTimer scheduledTimerWithTimeInterval:1.0  target:self selector:@selector(countdown) userInfo:nil repeats:YES];
     }
+    drawingNext = NO;
 }
 -(void)tapRegistered{
-    NSLog(@"Registered");
+    [self playNext];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -73,19 +84,21 @@
 }
 -(void)provisionStory{
     reversedArray = [[array reverseObjectEnumerator] allObjects];
-        reversedArray = array;
+//        reversedArray = array;
 //    [self draw:reversedArray atIndex:0 withTime:timeS];
 
     
     timeS = 0;
     for(NSDictionary *each in reversedArray){
         NSString *length = [each objectForKey:@"length"];
-        if(length.length > 1){
-            length = [length substringFromIndex:[length length] -1];
+        if(length.length > 1 && length.length != 10){
+//            length = [length substringFromIndex:[length length] -1];
         }
         timeS += [length intValue];
+//        NSLog(@"%d", timeS);
         [lengthArray addObject:length];
     }
+    NSLog(@"%@", lengthArray);
     timerLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.view.bounds.size.width-50, 10, 50, 50)];
     timerLabel.textColor = [UIColor whiteColor];
     timerLabel.text = [NSString stringWithFormat:@"%d", timeS];
@@ -101,13 +114,22 @@
     if([removed isEqualToString:@"true"]){
         [timer invalidate];
     }else{
-        if(rIndex < [reversedArray count]){
-            if(curTime == timeS){
-                [self draw:reversedArray atIndex:rIndex withTime:timeS];
-                curTime = timeS - [[lengthArray objectAtIndex:rIndex] intValue];
-                rIndex ++;
-                
-            }
+        if(rIndex < [lengthArray count]){
+            
+                if(curTime == timeS || timeS < curTime){
+//                    timeS++;
+                    if(drawingNext){
+                        drawingNext = NO;
+                    }else{
+                        [self draw:reversedArray atIndex:0 withTime:timeS];
+                        
+                        curTime = curTime - [[lengthArray objectAtIndex:rIndex] intValue];
+                        NSLog(@"%d", [[lengthArray objectAtIndex:rIndex] intValue]);
+                        rIndex ++;
+                    }
+                    
+                }
+            
         }
         
         timeS --;
@@ -121,9 +143,35 @@
     }
     
 }
+-(void)playNext{
+    if(rIndex == [reversedArray count] || [reversedArray count] == 0){
+        [self.view removeFromSuperview];
+        [self removeFromParentViewController];
+        [timer invalidate];
+    }else{
+        drawingNext = YES;
+        timeS = curTime;
+        timerLabel.text = [NSString stringWithFormat:@"%d", timeS];
+//        timeS++;
+
+        [self draw:reversedArray atIndex:0 withTime:timeS];
+        curTime = timeS - [[lengthArray objectAtIndex:rIndex] intValue];
+        NSLog(@"%d", [[lengthArray objectAtIndex:rIndex] intValue]);
+        rIndex++;
+        
+        
+    }
+    
+}
 -(void)draw:(NSArray *)rarray atIndex:(int)index withTime:(int)time{
 //    for(NSDictionary *each in rarray){
+    [avPlayer pause];
     NSDictionary *each = [rarray objectAtIndex:index];
+    
+    n = [[NSMutableArray alloc] initWithArray:rarray];
+    [n removeObjectAtIndex:index];
+    reversedArray = n;
+    
         NSString *type = [each objectForKey:@"type"];
         NSString *length = [each objectForKey:@"length"];
         NSString *filename = [each objectForKey:@"filename"];
@@ -150,6 +198,7 @@
             [mainView addSubview:imageView];
         }
 //    }
+    
 }
 -(void)Play:(NSString *)vid
 {
@@ -158,10 +207,20 @@
     CGFloat screenHeight = screenRect.size.height;
     
     //    AVAsset *avAsset = [AVAsset assetWithURL:vid];
-    AVAsset *avAsset = [AVAsset assetWithURL:[NSURL fileURLWithPath:vid]];
-    AVPlayerItem *avPlayerItem =[[AVPlayerItem alloc]initWithAsset:avAsset];
-    AVPlayer *avPlayer = [[AVPlayer alloc]initWithPlayerItem:avPlayerItem];
-    AVPlayerLayer * avPlayerLayer =[AVPlayerLayer playerLayerWithPlayer:avPlayer];
+    
+    [avPlayerLayer removeFromSuperlayer];
+    [apl removeFromSuperview];
+    
+    avAsset = nil;
+    avPlayerItem = nil;
+    avPlayer = nil;
+    avPlayerLayer = nil;
+    apl = nil;
+    
+    avAsset = [AVAsset assetWithURL:[NSURL fileURLWithPath:vid]];
+    avPlayerItem =[[AVPlayerItem alloc]initWithAsset:avAsset];
+    avPlayer = [[AVPlayer alloc]initWithPlayerItem:avPlayerItem];
+    avPlayerLayer =[AVPlayerLayer playerLayerWithPlayer:avPlayer];
     
     CGFloat ratio = screenHeight *3 / 4;
     CGFloat new_ratio = screenWidth *4/3;
@@ -170,7 +229,7 @@
     CGFloat minus = (screenHeight - ratio)/2;
     
     
-    UIView *apl = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [avAsset naturalSize].width, screenHeight)];
+    apl = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [avAsset naturalSize].width, screenHeight)];
     [apl setBackgroundColor:[UIColor blackColor]];
     [mainView addSubview:apl];
     [apl setUserInteractionEnabled:YES];
@@ -187,12 +246,7 @@
     [avPlayer seekToTime:kCMTimeZero];
     [avPlayer play];
     
-    
-    
     avPlayer.actionAtItemEnd = AVPlayerActionAtItemEndNone;
-    
-    
-    
 }
 /*
 #pragma mark - Navigation

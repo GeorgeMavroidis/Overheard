@@ -12,5 +12,7 @@
 
 @property (nonatomic, strong) NSArray *array;
 @property (nonatomic, strong) NSString *removed;
+
+@property (nonatomic, strong) NSMutableArray *n;
 -(void)provisionStory;
 @end

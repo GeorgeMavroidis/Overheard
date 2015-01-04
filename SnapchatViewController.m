@@ -212,7 +212,7 @@
     if(recognizer.state == UIGestureRecognizerStateBegan){
         CustomMainCell *tempCell = (CustomMainCell *)recognizer.view;
         if ([loaded objectForKey:tempCell.title.text]) {
-            [self drawStory:[loaded objectForKey:tempCell.title.text]];
+            [self drawStory:[loaded objectForKey:tempCell.title.text] forKey:tempCell.title.text];
         }
     }
     if(recognizer.state == UIGestureRecognizerStateEnded){
@@ -220,9 +220,10 @@
     }
     
 }
--(void)drawStory:(NSArray *)array{
+-(void)drawStory:(NSArray *)array forKey:(NSString *)title{
     st = [[StoryViewController alloc] init];
     st.array = array;
+    st.title = title;
     
     [self.view addSubview:st.view];
     [self addChildViewController:st];
@@ -232,10 +233,20 @@
     
 }
 -(void)removeStory{
+    
+    NSArray *t = [[st.n reverseObjectEnumerator] allObjects];
+    [loaded setObject:t forKey:st.title];
+    
+    if([t count] == 0){
+        
+    }
+    
     self.view.frame = CGRectMake(screenWidth, 60, screenWidth, self.view.bounds.size.height);
     [st.view removeFromSuperview];
     st.removed = @"true";
     [st removeFromParentViewController];
+    
+
     
 }
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{

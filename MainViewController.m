@@ -88,6 +88,8 @@
         frame = ptv.view.frame;
         frame.size.height += 50;
         ptv.view.frame = frame;
+//
+        
     }else{
         
         [self.navigationController setNavigationBarHidden:YES];
@@ -303,7 +305,7 @@
     publicFeed.backgroundColor = [UIColor whiteColor];
     
     bottomBar = [[UIView alloc] init];
-    bottomBar.frame = CGRectMake(0, screenHeight-70, screenWidth, 80);
+    bottomBar.frame = CGRectMake(0, screenHeight-80, screenWidth, 80);
     bottomBar.backgroundColor = [UIColor whiteColor];
     
     snap = [[SnapchatViewController alloc] init];
@@ -339,11 +341,15 @@
         
         
         
+        ptv.view.frame = CGRectMake(0, 0, screenWidth, screenHeight);
+        publicFeed.frame = CGRectMake(0, -100, screenWidth, screenHeight);
+        mainScrollView.frame = CGRectMake(0, 0, screenWidth, screenHeight);
     }else{
         tutorial = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
         [self.view addSubview:tutorial];
         tutorial.contentSize = CGSizeMake(screenWidth*4, screenHeight-20);
         tutorial.contentSize = CGSizeMake(screenWidth*2, screenHeight-20);
+        tutorial.contentSize = CGSizeMake(screenWidth, screenHeight-20);
         tutorial.backgroundColor = [UIColor whiteColor];
         tutorial.pagingEnabled = YES;
         tutorial.delegate = self;
@@ -404,7 +410,7 @@
                                              [UIImage imageNamed:@"tour-page-three-[15].jpg"],
                                              [UIImage imageNamed:@"tour-page-three-[16].jpg"], nil];
         animatedImageView.animationDuration = 3.0f;
-        animatedImageView.animationRepeatCount = 100;
+        animatedImageView.animationRepeatCount = 1000;
         [animatedImageView startAnimating];
         [tutorial addSubview: animatedImageView];
         
@@ -419,7 +425,7 @@
         [self.view addSubview:compose.view];
         [self.view addSubview:publicFeed];
         [self.view addSubview:bottomBar];
-        [bottomBar setHidden:YES];
+//        [bottomBar setHidden:YES];
 
         facebookBar = [[UIView alloc] init];
         facebookBar.frame = CGRectMake(50, 12, screenWidth-100, 45);
@@ -879,6 +885,15 @@
     //    pfuser.email = @"email@example.com";
     pfuser[@"name"] = user.name;
     pfuser[@"facebook_data"] = user;
+
+    
+    CGRect screenRect = self.view.bounds;
+    CGFloat screenWidth = screenRect.size.width;
+    CGFloat screenHeight = screenRect.size.height;
+    
+    ptv.view.frame = CGRectMake(0, 0, screenWidth, screenHeight);
+    publicFeed.frame = CGRectMake(0, -100, screenWidth, screenHeight);
+    mainScrollView.frame = CGRectMake(0, 0, screenWidth, screenHeight);
     
     
     [pfuser signUpInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
@@ -917,14 +932,44 @@
     [self.navigationController setNavigationBarHidden:NO animated:NO];
     [bottomBar setHidden:YES];
     [self setTitle:@"Overheard @ Guelph"];
-    CGRect frame = publicFeed.frame;
-    frame.origin.y -= 30;
-    frame.size.height += 30;
-    publicFeed.frame = frame;
+//    CGRect frame = publicFeed.frame;
+//    frame.origin.y -= 30;
+//    frame.size.height += 30;
+//    publicFeed.frame = frame;
+//    
+//    frame = ptv.view.frame;
+//    frame.size.height += 50;
+//    ptv.view.frame = frame;
+//    
+//    frame = publicFeed.frame;
+//    frame.origin.y -= 40;
+//    frame.size.height += 40;
+//    publicFeed.frame = frame;
+//    
+//    frame = ptv.view.frame;
+//    frame.size.height += 50;
+    //        frame.origin.y = 0;
+//    ptv.view.frame = frame;
     
-    frame = ptv.view.frame;
-    frame.size.height += 50;
-    ptv.view.frame = frame;
+    
+    mainScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
+    mainScrollView.delegate = self;
+    [mainScrollView setContentSize:CGSizeMake(screenWidth*2, screenHeight-10)];
+    
+    [mainScrollView setPagingEnabled:YES];
+    [mainScrollView setUserInteractionEnabled:YES];
+    [mainScrollView setBounces:NO];
+    
+    [self.view addSubview:mainScrollView];
+    [mainScrollView addSubview:compose.view];
+    [mainScrollView addSubview:publicFeed];
+    [pageControl setHidden:YES];
+    [self noAction];
+    
+    [mainScrollView addSubview:snap.view];
+    snap.view.frame = CGRectMake(screenWidth, 60, screenWidth, screenHeight);
+    [self addChildViewController:snap];
+
     
 }
 - (void)loginViewShowingLoggedInUser:(FBLoginView *)loginView {
