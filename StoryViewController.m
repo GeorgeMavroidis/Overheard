@@ -122,7 +122,7 @@
                         drawingNext = NO;
                     }else{
                         [self draw:reversedArray atIndex:0 withTime:timeS];
-                        
+                        timeS++;
                         curTime = curTime - [[lengthArray objectAtIndex:rIndex] intValue];
                         NSLog(@"%d", [[lengthArray objectAtIndex:rIndex] intValue]);
                         rIndex ++;
@@ -134,7 +134,7 @@
         
         timeS --;
         timerLabel.text = [NSString stringWithFormat:@"%d", timeS];
-        if(timeS == 0){
+        if(timeS == -1){
             [self.view removeFromSuperview];
             [self removeFromParentViewController];
             [timer invalidate];
@@ -144,7 +144,7 @@
     
 }
 -(void)playNext{
-    if(rIndex == [reversedArray count] || [reversedArray count] == 0){
+    if(rIndex == [lengthArray count] || [lengthArray count] == 0){
         [self.view removeFromSuperview];
         [self removeFromParentViewController];
         [timer invalidate];
@@ -180,7 +180,7 @@
             
             NSArray *directoryPath = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
             NSString *videoPath =  [directoryPath objectAtIndex:0];
-            videoPath= [videoPath stringByAppendingPathComponent:filename];
+            videoPath= [videoPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@/%@", self.title,filename]];
 
             [self Play:videoPath];
         }else{
@@ -188,7 +188,7 @@
             
             NSArray *directoryPath = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
             NSString *imagePath =  [directoryPath objectAtIndex:0];
-            imagePath= [imagePath stringByAppendingPathComponent:filename];
+            imagePath= [imagePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@/%@", self.title,filename]];
             
             NSData *data = [NSData dataWithContentsOfFile:imagePath];
             UIImage *img = [UIImage imageWithData:data];

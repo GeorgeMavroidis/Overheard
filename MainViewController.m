@@ -380,7 +380,7 @@
                                              [UIImage imageNamed:@"splashcreen[10].jpg"],
                                               nil];
         animatedImageView1.animationDuration = 2.0f;
-        animatedImageView1.animationRepeatCount = 100;
+        animatedImageView1.animationRepeatCount = 1000;
         [animatedImageView1 startAnimating];
         [tutorial addSubview: animatedImageView1];
         

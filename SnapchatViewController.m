@@ -69,9 +69,12 @@
     
     NSArray *items;
     NSMutableDictionary *loaded;
+    NSMutableDictionary *tags;
     
     UIRefreshControl *refresh;
     StoryViewController *st;
+    
+
 }
 
 @end
@@ -110,7 +113,7 @@
     refresh = [[UIRefreshControl alloc] init];
     [refresh addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
     [tableView addSubview:refresh];
-    
+    tags = [[NSMutableDictionary alloc] init];
     loaded = [[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"loaded_stories"] mutableCopy];
     if(loaded == nil){
         loaded = [[NSMutableDictionary alloc] init];
@@ -130,6 +133,7 @@
         
     }
     
+    [self fetchFeeds];
     // Do any additional setup after loading the view.
 }
 -(void)launchStoryCreator{
@@ -147,14 +151,177 @@
     NSURL *url = [NSURL URLWithString:feed];
     NSError *error;
     NSString *stuff = [NSString stringWithContentsOfURL:url usedEncoding:nil error:&error];
-    NSData *tdata = [stuff dataUsingEncoding:NSUTF8StringEncoding];
-    items= [NSJSONSerialization JSONObjectWithData:tdata options:0 error:nil];
-
-    [[NSUserDefaults standardUserDefaults] setObject:items forKey:@"overheard_stories"];
+    if(stuff != nil){
+        NSData *tdata = [stuff dataUsingEncoding:NSUTF8StringEncoding];
+        items= [NSJSONSerialization JSONObjectWithData:tdata options:0 error:nil];
+        
+        [[NSUserDefaults standardUserDefaults] setObject:items forKey:@"overheard_stories"];
+        
+        //UNCHECK BEFORE
+        if(loaded != nil)
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                //
+                
+                // update UI on the main thread
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    [self checkCurrentlyLoaded:loaded];
+                    
+                });
+                
+            });
+        else
+            loaded = [[NSMutableDictionary alloc] init];
+    }
     
-    //UNCHECK BEFORE
-    loaded = [[NSMutableDictionary alloc] init];
+    
+}
+-(void)checkCurrentlyLoaded:(NSMutableDictionary *)allLoaded{
+    for(NSString *each in [allLoaded allKeys]){
+        
+        UIActivityIndicatorView *activityIndicator = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            
+            NSString *feed = [NSString stringWithFormat:@"http://www.thewotimes.com/overheard/storyDB.php?get=%@", each];
+            NSURL *url = [NSURL URLWithString:feed];
+            NSError *error;
+            NSString *stuff = [NSString stringWithContentsOfURL:url usedEncoding:nil error:&error];
 
+            NSData *tdata = [stuff dataUsingEncoding:NSUTF8StringEncoding];
+            NSDictionary *fetched = [NSJSONSerialization JSONObjectWithData:tdata options:0 error:nil];
+            NSArray *keyss = [NSArray arrayWithObjects:@"id", nil];
+            
+            NSMutableArray *arr1 = [[NSMutableArray alloc] init];
+            NSMutableArray *arr2 = [[NSMutableArray alloc] init];
+            for (NSDictionary *dict in fetched) {
+                NSString *value = [dict objectForKey:@"id"];
+                if (value) {
+                    [arr1 addObject:value];
+                }
+            }
+            for (NSDictionary *dict in [allLoaded objectForKey:each]) {
+                NSString *value = [dict objectForKey:@"id"];
+                if (value) {
+                    [arr2 addObject:value];
+                }
+            }
+            
+            if(![arr1 isEqualToArray:arr2]){
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    NSIndexPath *tagsIP = [tags objectForKey:each];
+                    CustomMainCell *c = (CustomMainCell *)[tableView cellForRowAtIndexPath:tagsIP];
+                    [c.icon setAlpha:0.5];
+                    [c.title setAlpha:0.5];
+                    activityIndicator.frame =c.icon.frame;
+                    activityIndicator.center = c.icon.center;
+                    [c addSubview:activityIndicator];
+                    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+                    [activityIndicator startAnimating];
+                    
+                    
+                    c.status.text = @" - loading...";
+                    
+                    
+                });
+                dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+                    
+                    NSArray *downloading = [self downloadData:tdata forKey:each];
+                    
+                    //            NSLog(@"%@", downloading);
+                    
+                    
+                    //Background Thread
+                    dispatch_async(dispatch_get_main_queue(), ^(void){
+                        // This line stops the activity indicator in the status bar
+                        [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+                        
+                        // This line stops the activity indicator on the view, in this case the table view
+                        NSIndexPath *tagsIP = [tags objectForKey:each];
+                        CustomMainCell *c = (CustomMainCell *)[tableView cellForRowAtIndexPath:tagsIP];
+                        
+                        [activityIndicator stopAnimating];
+                        c.status.text = @" - Hold to play";
+                        [c.icon setAlpha:1];
+                        [c.title setAlpha:1];
+                        
+                        
+                        [loaded setObject:downloading forKey:each];
+                        [[NSUserDefaults standardUserDefaults] setObject:loaded forKey:@"loaded_stories"];
+                        
+                        
+                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                            
+                            [self balanceData:downloading forKey:each];
+                            // update UI on the main thread
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                                
+                                
+                            });
+                            
+                        });
+                        
+                    });
+                });
+                
+                
+                //
+            }
+            // update UI on the main thread
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                
+            });
+            
+        });
+        
+        
+    }
+}
+-(void)balanceData:(NSArray *)array forKey:(NSString *)key{
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *keyDirectory = [NSString stringWithFormat:@"%@/%@", documentsDirectory, key];
+    NSArray *directoryContent = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:keyDirectory error:NULL];
+    
+    NSMutableArray *all_filenames = [[NSMutableArray alloc] init];
+        for(NSDictionary *each in array){
+            NSString *str=[each valueForKey:@"link"];
+            NSString *type = [each valueForKey:@"type"];
+            
+            NSURL *url=[NSURL URLWithString:str];
+            
+            NSArray* foo = [str componentsSeparatedByString: @"/"];
+            
+            NSString* filename = [NSString stringWithFormat:@"%@",[foo objectAtIndex: [foo count] -1]];
+            
+            NSString  *filePath = [NSString stringWithFormat:@"%@/%@/%@", documentsDirectory, key, filename];
+            
+            [all_filenames addObject:filename];
+            
+//            NSError *error;
+//            BOOL success = [[NSFileManager defaultManager] removeItemAtPath:filePath error:&error];
+            
+        }
+    
+    NSMutableArray *intermediate = [NSMutableArray arrayWithArray:directoryContent];
+    [intermediate removeObjectsInArray:all_filenames];
+    
+    
+    for(NSString *left in intermediate){
+        
+        NSString  *filePath = [NSString stringWithFormat:@"%@/%@/%@", documentsDirectory, key, left];
+        NSError *error;
+        if ([[NSFileManager defaultManager] isDeletableFileAtPath:filePath]) {
+            BOOL success = [[NSFileManager defaultManager] removeItemAtPath:filePath error:&error];
+            if (!success) {
+                NSLog(@"Error removing file at path: %@", error.localizedDescription);
+            }
+        }
+    }
+    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -205,6 +372,8 @@
     [cell addGestureRecognizer:playS];
     playS.minimumPressDuration = 0.5;
     cell.userInteractionEnabled = YES;
+    cell.tag = indexPath.row;
+    [tags setObject:indexPath forKey:cell.title.text];
     
     return cell;
 }
@@ -235,10 +404,16 @@
 -(void)removeStory{
     
     NSArray *t = [[st.n reverseObjectEnumerator] allObjects];
+    
     [loaded setObject:t forKey:st.title];
     
     if([t count] == 0){
-        
+        NSIndexPath *tagsIP = [tags objectForKey:st.title];
+        CustomMainCell *c = (CustomMainCell *)[tableView cellForRowAtIndexPath:tagsIP];
+        [loaded removeObjectForKey:st.title];
+        c.status.text = @"- Tap to load";
+        [c.icon setAlpha:0.5];
+        [c.title setAlpha:0.5];
     }
     
     self.view.frame = CGRectMake(screenWidth, 60, screenWidth, self.view.bounds.size.height);
@@ -252,18 +427,20 @@
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     CustomMainCell *c = (CustomMainCell *)[tableView cellForRowAtIndexPath:indexPath];
     NSString *obj = [[items objectAtIndex:indexPath.row] objectForKey:@"title"];
-    
-    UIActivityIndicatorView *activityIndicator = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-    activityIndicator.frame =c.icon.frame;
-    activityIndicator.center = c.icon.center;
-    [c addSubview:activityIndicator];
-    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
-    [activityIndicator startAnimating];
+
     
     
     if ([loaded objectForKey:obj]) {
         c.status.text = @" - Hold to play";
     }else{
+        
+        UIActivityIndicatorView *activityIndicator = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+        activityIndicator.frame =c.icon.frame;
+        activityIndicator.center = c.icon.center;
+        [c addSubview:activityIndicator];
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+        [activityIndicator startAnimating];
+        
         c.status.text = @" - loading...";
         dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
             
@@ -271,36 +448,65 @@
             NSURL *url = [NSURL URLWithString:feed];
             NSError *error;
             NSString *stuff = [NSString stringWithContentsOfURL:url usedEncoding:nil error:&error];
-            NSData *tdata = [stuff dataUsingEncoding:NSUTF8StringEncoding];
-            NSArray *downloading = [self downloadData:tdata];
             
-//            NSLog(@"%@", downloading);
-            
-            
-            //Background Thread
-            dispatch_async(dispatch_get_main_queue(), ^(void){
-                // This line stops the activity indicator in the status bar
+            if(stuff ==nil){
                 [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
                 
                 // This line stops the activity indicator on the view, in this case the table view
-                [activityIndicator stopAnimating];
-                c.status.text = @" - Hold to play";
-                [c.icon setAlpha:1];
-                [c.title setAlpha:1];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    c.status.text = @" - No Stories!";
+                    [activityIndicator stopAnimating];
+                    c.selected = NO;
+                    
+                });
+                
+            }else{
+                NSData *tdata = [stuff dataUsingEncoding:NSUTF8StringEncoding];
+                NSArray *downloading = [self downloadData:tdata forKey:obj];
+            
+                
+                //            NSLog(@"%@", downloading);
                 
                 
-                [loaded setObject:downloading forKey:obj];
-                [[NSUserDefaults standardUserDefaults] setObject:loaded forKey:@"loaded_stories"];
-                
-                
-            });
+                //Background Thread
+                dispatch_async(dispatch_get_main_queue(), ^(void){
+                    // This line stops the activity indicator in the status bar
+                    [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+                    
+                    // This line stops the activity indicator on the view, in this case the table view
+                    [activityIndicator stopAnimating];
+                    c.status.text = @" - Hold to play";
+                    [c.icon setAlpha:1];
+                    [c.title setAlpha:1];
+                    
+                    
+                    [loaded setObject:downloading forKey:obj];
+                    [[NSUserDefaults standardUserDefaults] setObject:loaded forKey:@"loaded_stories"];
+                    
+                    
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                        //
+                        [self balanceData:downloading forKey:obj];
+                        // update UI on the main thread
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            
+                            
+                        });
+                        
+                    });
+                    
+                });
+            }
         });
+        
+        
     }
    
     
     
 }
--(NSArray *)downloadData:(NSData *)data{
+-(NSArray *)downloadData:(NSData *)data forKey:(NSString *)key{
     
     NSArray *fetched = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
 //    [loaded setObject:fetched forKey:forK];
@@ -311,28 +517,35 @@
         NSString *type = [each valueForKey:@"type"];
         
         NSURL *url=[NSURL URLWithString:str];
-        NSData *data=[NSData dataWithContentsOfURL:url];
         
         NSArray* foo = [str componentsSeparatedByString: @"/"];
         NSString* filename = [foo objectAtIndex: [foo count] -1];
         
-        if (data){
-            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-            NSString *documentsDirectory = [paths objectAtIndex:0];
-            NSString  *filePath = [NSString stringWithFormat:@"%@/%@", documentsDirectory,filename];
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsDirectory = [paths objectAtIndex:0];
+        NSString *dataPath = [documentsDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"/%@", key]];
+        
+        NSError *error;
+        if (![[NSFileManager defaultManager] fileExistsAtPath:dataPath])
+            [[NSFileManager defaultManager] createDirectoryAtPath:dataPath withIntermediateDirectories:NO attributes:nil error:&error]; //Create folder
+        
+        NSString  *filePath = [NSString stringWithFormat:@"%@/%@/%@", documentsDirectory, key, filename];
+        
+        BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filePath];
+        if(!fileExists){
             
-            BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filePath];
-            if(!fileExists){
-                
-                [data writeToFile:filePath atomically:YES];
-            }
-            
-            NSMutableDictionary *temp = [[NSMutableDictionary alloc] initWithDictionary:each];
-            [temp setObject:filename forKey:@"filename"];
-            [loadingArray addObject:temp];
+            NSData *data=[NSData dataWithContentsOfURL:url];
+            [data writeToFile:filePath atomically:YES];
             
             
         }
+        
+        NSMutableDictionary *temp = [[NSMutableDictionary alloc] initWithDictionary:each];
+        [temp setObject:filename forKey:@"filename"];
+        [loadingArray addObject:temp];
+        
+        
+        
         
         
         

@@ -637,10 +637,11 @@
         // 2 - set up the parent layer
         CALayer *parentLayer = [CALayer layer];
         CALayer *videoLayer = [CALayer layer];
-        parentLayer.frame = CGRectMake(0, 0,screenWidth,screenHeight);
+        parentLayer.frame = CGRectMake(0, 0,screenWidth, [avAsset naturalSize].height);
         
         float   angle = M_PI/2 + M_PI;  //rotate 180°, or 1 π radian
         videoLayer.transform = CATransform3DMakeRotation(angle, 0, 0.0, 1.0);
+        
         [videoLayer setFrame:CGRectMake(-([avAsset naturalSize].width - screenWidth)-24, 0,[avAsset naturalSize].width+24,screenHeight)];
         
         [parentLayer addSublayer:videoLayer];
@@ -700,18 +701,16 @@
         PFFile *imageFile = [PFFile fileWithName:@"image.png" data:imageDatas];
         //    [imageFile saveInBackground];
         
-        
         [imageFile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
             if (!error) {
-                // Hide old HUD, show completed HUD (see example for code)
                 
-                PFObject *userPhoto = [PFObject objectWithClassName:@"UserPhoto"];
+                PFObject *userVideo= [PFObject objectWithClassName:@"UserPhoto"];
                 //    [userPhoto setObject:@"" forKey:@"imageName"];
-                [userPhoto setObject:imageFile             forKey:@"imageFile"];
-                [userPhoto setObject:[PFUser currentUser]  forKey:@"user"];
-                [userPhoto setObject:[PFInstallation currentInstallation]  forKey:@"installation"];
+                [userVideo setObject:imageFile           forKey:@"imageFile"];
+                [userVideo setObject:[PFUser currentUser]  forKey:@"user"];
+                [userVideo setObject:[PFInstallation currentInstallation]  forKey:@"installation"];
                 
-                [userPhoto saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                [userVideo saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
                     if (!error) {
                         [self downloadAllImages];
                         
@@ -737,34 +736,34 @@
 - (void)downloadAllImages{
     PFQuery *query = [PFQuery queryWithClassName:@"UserPhoto"];
     PFUser *user = [PFUser currentUser];
-    [query whereKey:@"user" equalTo:user];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        // If there are photos, we start extracting the data
-        // Save a list of object IDs while extracting this data
+//    [query whereKey:@"user" equalTo:user];
+    
+    
+    PFInstallation *instal = [PFInstallation currentInstallation];
+    
+    [query whereKey:@"installation" equalTo:instal];
+    [query orderByDescending:@"createdAt"];
+    [query getFirstObjectInBackgroundWithBlock:^(PFObject *objects, NSError *error) {
+        PFFile *t =[objects objectForKey:@"imageFile"];
+        imageURL = t.url;
         
-        NSMutableArray *newObjectIDArray = [NSMutableArray array];
-        NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
         
-        if (objects.count > 0) {
-            PFFile *t =[[objects objectAtIndex:[objects count]-1] objectForKey:@"imageFile"];
-            imageURL = t.url;
-            
-            
-            NSString *typeOfThing = @"picture";
-            NSString *link = imageURL;
-            NSString *lengthOfThing = timeL.text;
-            NSString *channel = [s.selected componentsJoinedByString:@","];
-            
-            NSString *newCountryString =[channel stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-            
-            NSString *feed = [NSString stringWithFormat:@"http://www.thewotimes.com/overheard/storyDB.php?type=%@&link=%@&length=%@&channel=%@", typeOfThing, link, lengthOfThing, newCountryString];
-            NSURL *url = [NSURL URLWithString:feed];
-            NSError *error;
-            NSString *stuff = [NSString stringWithContentsOfURL:url usedEncoding:nil error:&error];
-            NSData *tdata = [stuff dataUsingEncoding:NSUTF8StringEncoding];
-            
-        }
+        NSString *typeOfThing = @"picture";
+        NSString *link = imageURL;
+        NSString *lengthOfThing = timeL.text;
+        NSString *channel = [s.selected componentsJoinedByString:@","];
+        
+        NSString *newCountryString =[channel stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        
+        NSString *feed = [NSString stringWithFormat:@"http://www.thewotimes.com/overheard/storyDB.php?type=%@&link=%@&length=%@&channel=%@", typeOfThing, link, lengthOfThing, newCountryString];
+        NSURL *url = [NSURL URLWithString:feed];
+        NSError *erro;
+        NSString *stuff = [NSString stringWithContentsOfURL:url usedEncoding:nil error:&erro];
+        NSData *tdata = [stuff dataUsingEncoding:NSUTF8StringEncoding];
+
+        
     }];
+   
     
 }
 - (void)downloadAllVideos{
