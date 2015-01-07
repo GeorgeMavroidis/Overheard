@@ -546,11 +546,10 @@
     compose.picker.cameraCaptureMode = UIImagePickerControllerCameraCaptureModePhoto;
     
     [compose.picker setSourceType:UIImagePickerControllerSourceTypeCamera];
-    NSLog(@"here");
-//        [picker dismissViewControllerAnimated:YES completion:NULL];
-
-   
+//    NSLog(@"here");
+    [compose.picker dismissViewControllerAnimated:YES completion:NULL];
     [compose.mainText becomeFirstResponder];
+    [self cancel];
 }
 - (void) imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
@@ -583,31 +582,24 @@
 }
 -(void)uploadImage:(NSData *)imageData{
     
-    // Show the HUD while the provided method executes in a new thread
-    [refreshHUD show:YES];
     
     PFFile *imageFile = [PFFile fileWithName:@"Image.jpg" data:imageData];
     
     //HUD creation here (see example for code)
     
-    // Save PFFile
     [imageFile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
         if (!error) {
-            // Hide old HUD, show completed HUD (see example for code)
             
-            // Create a PFObject around a PFFile and associate it with the current user
-            PFObject *userPhoto = [PFObject objectWithClassName:@"UserPhoto"];
-            [userPhoto setObject:imageFile forKey:@"imageFile"];
+            PFObject *userVideo= [PFObject objectWithClassName:@"UserPhoto"];
+            //    [userPhoto setObject:@"" forKey:@"imageName"];
+            [userVideo setObject:imageFile           forKey:@"imageFile"];
+            [userVideo setObject:[PFUser currentUser]  forKey:@"user"];
+            [userVideo setObject:[PFInstallation currentInstallation]  forKey:@"installation"];
             
-            // Set the access control list to current user for security purposes
-            userPhoto.ACL = [PFACL ACLWithUser:[PFUser currentUser]];
-            
-            PFUser *user = [PFUser currentUser];
-            [userPhoto setObject:user forKey:@"user"];
-            
-            [userPhoto saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+            [userVideo saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
                 if (!error) {
                     [self downloadAllImages];
+                    
                 }
                 else{
                     // Log details of the failure
@@ -616,32 +608,33 @@
             }];
         }
         else{
-            [refreshHUD hide:YES];
             // Log details of the failure
             NSLog(@"Error: %@ %@", error, [error userInfo]);
         }
     } progressBlock:^(int percentDone) {
-        // Update your progress spinner here. percentDone will be between 0 and 100.
-        refreshHUD.progress = (float)percentDone/100;
+        
     }];
+    
     
 }
 - (void)downloadAllImages{
     PFQuery *query = [PFQuery queryWithClassName:@"UserPhoto"];
     PFUser *user = [PFUser currentUser];
-    [query whereKey:@"user" equalTo:user];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        // If there are photos, we start extracting the data
-        // Save a list of object IDs while extracting this data
+    //    [query whereKey:@"user" equalTo:user];
+    
+    
+    PFInstallation *instal = [PFInstallation currentInstallation];
+    
+    [query whereKey:@"installation" equalTo:instal];
+    [query orderByDescending:@"createdAt"];
+    [query getFirstObjectInBackgroundWithBlock:^(PFObject *objects, NSError *error) {
+        PFFile *t =[objects objectForKey:@"imageFile"];
+        compose.imageURL = t.url;
         
-        NSMutableArray *newObjectIDArray = [NSMutableArray array];
-        NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
         
-        if (objects.count > 0) {
-            PFFile *t =[[objects objectAtIndex:[objects count]-1] objectForKey:@"imageFile"];
-            compose.imageURL = t.url;
-        }
+        
     }];
+    
     
 }
 - (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo
@@ -688,9 +681,10 @@
     [self.view addSubview:compose.view];
     compose.view.frame = CGRectMake(0, -screenHeight, screenWidth, screenHeight);
     [self.navigationController setNavigationBarHidden:YES animated:YES];
-    compose.picker = [[UIImagePickerController alloc] init];
-    compose.picker.view.frame = CGRectMake(0, 0, screenWidth, screenHeight);
-    compose.picker.delegate = self;
+//    compose.picker = [[UIImagePickerController alloc] init];
+//    compose.picker.view.frame = CGRectMake(0, 0, screenWidth, screenHeight);
+    
+   
     if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         
         UIAlertView *myAlertView = [[UIAlertView alloc] initWithTitle:@"Error"
@@ -703,17 +697,16 @@
         
         
     }else{//other action}
+        compose.picker = [[UIImagePickerController alloc] init];
         compose.picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-        compose.picker.cameraCaptureMode = UIImagePickerControllerCameraCaptureModePhoto;
-        picker.cameraOverlayView = compose.overlay;
-        compose.picker.view.userInteractionEnabled = YES;
-        compose.picker.showsCameraControls = NO;
+        compose.picker.showsCameraControls = YES;
+        compose.picker.delegate = self;
     }
     float cameraAspectRatio = 4.0 / 3.0;
     float imageWidth = floorf(screenWidth * cameraAspectRatio);
     float scale = ceilf((screenHeight / imageWidth) * 10.0) / 10.0;
 
-    [compose.iinercircle addSubview:compose.picker.view];
+//    [compose.iinercircle addSubview:compose.picker.view];
     
 //    [self addChildViewController:compose.picker];
 //    frame = compose.iinercircle.frame;
@@ -970,7 +963,8 @@
     snap.view.frame = CGRectMake(screenWidth, 60, screenWidth, screenHeight);
     [self addChildViewController:snap];
 
-    
+    [self compose];
+    [self cancel];
 }
 - (void)loginViewShowingLoggedInUser:(FBLoginView *)loginView {
 //    facebookBar.text = @"You're logged in as";

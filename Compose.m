@@ -95,6 +95,9 @@
 
     iinercircle = [[UIView alloc] initWithFrame:CGRectMake(screenWidth/2-32, 0, 64, 64)];
     [iinercircle setBackgroundColor:[UIColor whiteColor]];
+    UIImageView *a = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"camera_000000_80.png"]];
+    a.frame = CGRectMake(10, 10, 30, 30);
+    [iinercircle addSubview:a];
     iinercircle.layer.cornerRadius = 64/2;
     iinercircle.clipsToBounds = YES;
 
@@ -150,7 +153,7 @@
     keyboardRect = [self.view convertRect:keyboardRect fromView:nil]; //this is it!
     CGRect frame = footer.frame;
     frame.origin.y = keyboardRect.origin.y-frame.size.height;
-    footer.frame = CGRectMake(0, keyboardRect.origin.y-footer.frame.size.height+50, screenWidth, 80);
+    footer.frame = CGRectMake(0, keyboardRect.origin.y-footer.frame.size.height+30, screenWidth, 80);
     frame = picker.view.frame;
     frame.origin.y = keyboardRect.origin.y-frame.size.height;
 //    picker.view.frame = frame;
@@ -211,22 +214,26 @@
                                          recognizer.view.center.y + translation.y);
     [recognizer setTranslation:CGPointMake(0, 0) inView:self.view];
 }
+
+
 - (void)downloadAllImages{
     PFQuery *query = [PFQuery queryWithClassName:@"UserPhoto"];
     PFUser *user = [PFUser currentUser];
-    [query whereKey:@"user" equalTo:user];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        // If there are photos, we start extracting the data
-        // Save a list of object IDs while extracting this data
+    //    [query whereKey:@"user" equalTo:user];
+    
+    
+    PFInstallation *instal = [PFInstallation currentInstallation];
+    
+    [query whereKey:@"installation" equalTo:instal];
+    [query orderByDescending:@"createdAt"];
+    [query getFirstObjectInBackgroundWithBlock:^(PFObject *objects, NSError *error) {
+        PFFile *t =[objects objectForKey:@"imageFile"];
+        imageURL = t.url;
         
-        NSMutableArray *newObjectIDArray = [NSMutableArray array];
-        NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
         
-        if (objects.count > 0) {
-            PFFile *t =[[objects objectAtIndex:[objects count]-1] objectForKey:@"imageFile"];
-            imageURL = t.url;
-        }
+        
     }];
+    
     
 }
 -(void)locationTapped{
@@ -336,38 +343,34 @@
     
     //HUD creation here (see example for code)
     
-    // Save PFFile
-    [imageFile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-        if (!error) {
-            // Hide old HUD, show completed HUD (see example for code)
-            
-            // Create a PFObject around a PFFile and associate it with the current user
-            PFObject *userPhoto = [PFObject objectWithClassName:@"UserPhoto"];
-            [userPhoto setObject:imageFile forKey:@"imageFile"];
-            
-            // Set the access control list to current user for security purposes
-            userPhoto.ACL = [PFACL ACLWithUser:[PFUser currentUser]];
-            
-            PFUser *user = [PFUser currentUser];
-            [userPhoto setObject:user forKey:@"user"];
-            
-            [userPhoto saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+            [imageFile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
                 if (!error) {
-                    [self downloadAllImages];
+                    
+                    PFObject *userVideo= [PFObject objectWithClassName:@"UserPhoto"];
+                    //    [userPhoto setObject:@"" forKey:@"imageName"];
+                    [userVideo setObject:imageFile           forKey:@"imageFile"];
+                    [userVideo setObject:[PFUser currentUser]  forKey:@"user"];
+                    [userVideo setObject:[PFInstallation currentInstallation]  forKey:@"installation"];
+                    
+                    [userVideo saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                        if (!error) {
+                            [self downloadAllImages];
+                            
+                        }
+                        else{
+                            // Log details of the failure
+                            NSLog(@"Error: %@ %@", error, [error userInfo]);
+                        }
+                    }];
                 }
                 else{
                     // Log details of the failure
                     NSLog(@"Error: %@ %@", error, [error userInfo]);
                 }
+            } progressBlock:^(int percentDone) {
+                
             }];
-        }
-        else{
-            // Log details of the failure
-            NSLog(@"Error: %@ %@", error, [error userInfo]);
-        }
-    } progressBlock:^(int percentDone) {
-        
-    }];
+            
     
 }
 - (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo
@@ -446,50 +449,49 @@
 
 //
 //    [picker setAllowsEditing:YES];
-//    
-//    picker.showsCameraControls = YES;
+//
 
-//    [self presentModalViewController:picker animated:YES];
-    CGRect screenRect = self.view.bounds;
-    CGFloat screenWidth = screenRect.size.width;
-    CGFloat screenHeight = screenRect.size.height;
-    
-    [UIView animateWithDuration:0.50 animations:^{
-        CGRect frame = circle.frame;
-        frame = CGRectMake(0, 0, screenWidth, screenHeight-150);
-        circle.frame = frame;
-        iinercircle.frame = frame;
-        innercircle.frame = frame;
-        frame = CGRectMake(0, 150, screenWidth, screenHeight-150);
-        footer.frame = frame;
-        
-        overlay.frame = iinercircle.frame;
-        //        overlayImage.frame = frame;
-        frame = CGRectMake(0, 0, screenWidth, screenHeight-150);
-        picker.view.frame = frame;
-        frame = CGRectMake(0, 0, screenWidth, screenHeight-150);
-        overlayImage.frame = frame;
-        [overlayImage removeFromSuperview];
-        overlayImage = nil;
-//        overlayImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight-150)];
-//        overlayImage.image = [[UIImage alloc] init];
-        [mainText resignFirstResponder];
-        
-        iinercircle.layer.cornerRadius = 0;
-        
-        overlay.layer.cornerRadius = 0;
-        
-        [overlay setUserInteractionEnabled:YES];
-        if(overlayImage == nil){
-            [overlay addGestureRecognizer:takePicture];
-        }else{
-            [overlay addGestureRecognizer:movepicture];
-            
-        }
-    } completion:^(BOOL finished) {
-        //        picker.showsCameraControls = YES;
-        
-    }];
+    [self presentModalViewController:picker animated:YES];
+//    CGRect screenRect = self.view.bounds;
+//    CGFloat screenWidth = screenRect.size.width;
+//    CGFloat screenHeight = screenRect.size.height;
+//    
+//    [UIView animateWithDuration:0.50 animations:^{
+//        CGRect frame = circle.frame;
+//        frame = CGRectMake(0, 0, screenWidth, screenHeight-150);
+//        circle.frame = frame;
+//        iinercircle.frame = frame;
+//        innercircle.frame = frame;
+//        frame = CGRectMake(0, 150, screenWidth, screenHeight-150);
+//        footer.frame = frame;
+//        
+//        overlay.frame = iinercircle.frame;
+//        //        overlayImage.frame = frame;
+//        frame = CGRectMake(0, 0, screenWidth, screenHeight-150);
+//        picker.view.frame = frame;
+//        frame = CGRectMake(0, 0, screenWidth, screenHeight-150);
+//        overlayImage.frame = frame;
+//        [overlayImage removeFromSuperview];
+//        overlayImage = nil;
+////        overlayImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight-150)];
+////        overlayImage.image = [[UIImage alloc] init];
+//        [mainText resignFirstResponder];
+//        
+//        iinercircle.layer.cornerRadius = 0;
+//        
+//        overlay.layer.cornerRadius = 0;
+//        
+//        [overlay setUserInteractionEnabled:YES];
+//        if(overlayImage == nil){
+//            [overlay addGestureRecognizer:takePicture];
+//        }else{
+//            [overlay addGestureRecognizer:movepicture];
+//            
+//        }
+//    } completion:^(BOOL finished) {
+//        //        picker.showsCameraControls = YES;
+//        
+//    }];
 }
 
 
