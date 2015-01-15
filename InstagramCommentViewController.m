@@ -9,6 +9,7 @@
 #import "InstagramCommentViewController.h"
 #import "InstagramCommentCell.h"
 #import "AsyncImageView.h"
+#import <Parse/Parse.h>
 
 @interface InstagramCommentViewController ()
 
@@ -110,9 +111,11 @@
     [sendText addGestureRecognizer:sendt];
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    user_id= [[defaults objectForKey:@"facebook_data"] valueForKey:@"id"];
-    user_name = [[defaults objectForKey:@"facebook_data"] valueForKey:@"name"];
-    
+//    user_id= [[defaults objectForKey:@"facebook_data"] valueForKey:@"id"];
+//    user_name = [[defaults objectForKey:@"facebook_data"] valueForKey:@"name"];
+    PFInstallation *pfi = [PFInstallation currentInstallation];
+    user_id = pfi.installationId;
+    user_name = @"";
 
     
     [main_tableView scrollRectToVisible:CGRectMake(0, main_tableView.contentSize.height - main_tableView.bounds.size.height, main_tableView.bounds.size.width, main_tableView.bounds.size.height) animated:YES];

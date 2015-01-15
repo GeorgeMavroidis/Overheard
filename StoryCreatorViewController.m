@@ -668,7 +668,8 @@
         
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *documentsDirectory = [paths objectAtIndex:0];
-        NSString* VideoName = [NSString stringWithFormat:@"%@/mynewwatermarkedvideo.mp4",documentsDirectory];
+        NSString *tmpDirectory = NSTemporaryDirectory();
+        NSString* VideoName = [NSString stringWithFormat:@"%@/mynewwatermarkedvideo.mp4",tmpDirectory];
         NSURL *exportUrl = [NSURL fileURLWithPath:VideoName];
         
         if ([[NSFileManager defaultManager] fileExistsAtPath:VideoName]){

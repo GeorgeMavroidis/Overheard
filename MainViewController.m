@@ -75,7 +75,7 @@
 -(void)viewDidAppear:(BOOL)animated{
     defaults = [NSUserDefaults standardUserDefaults];
     
-    if([defaults objectForKey:@"facebook_data"] != nil){
+//    if([defaults objectForKey:@"facebook_data"] != nil){
         [self noAction];
         [self.navigationController setNavigationBarHidden:NO animated:NO];
         [bottomBar setHidden:YES];
@@ -90,10 +90,10 @@
         ptv.view.frame = frame;
 //
         
-    }else{
-        
-        [self.navigationController setNavigationBarHidden:YES];
-    }
+//    }else{
+//        
+//        [self.navigationController setNavigationBarHidden:YES];
+//    }
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     CGFloat pageWidth = scrollView.frame.size.width;
@@ -319,7 +319,7 @@
     ptv.view.frame = CGRectMake(0, 0, screenWidth, screenHeight-90);
     
     NSLog(@"%@", [defaults objectForKey:@"facebook_data"]);
-    if([defaults objectForKey:@"facebook_data"] != nil){
+//    if([defaults objectForKey:@"facebook_data"] != nil){
         mainScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
         mainScrollView.delegate = self;
         [mainScrollView setContentSize:CGSizeMake(screenWidth*2, screenHeight-10)];
@@ -344,145 +344,147 @@
         ptv.view.frame = CGRectMake(0, 0, screenWidth, screenHeight);
         publicFeed.frame = CGRectMake(0, -100, screenWidth, screenHeight);
         mainScrollView.frame = CGRectMake(0, 0, screenWidth, screenHeight);
-    }else{
-        tutorial = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
-        [self.view addSubview:tutorial];
-        tutorial.contentSize = CGSizeMake(screenWidth*4, screenHeight-20);
-        tutorial.contentSize = CGSizeMake(screenWidth*2, screenHeight-20);
-        tutorial.contentSize = CGSizeMake(screenWidth, screenHeight-20);
-        tutorial.backgroundColor = [UIColor whiteColor];
-        tutorial.pagingEnabled = YES;
-        tutorial.delegate = self;
-        tutorial.showsHorizontalScrollIndicator = NO;
-        
-        UIView *whiteBar  = [[UIView alloc] initWithFrame: CGRectMake(0, 0, screenWidth, 20)];
-        whiteBar.backgroundColor = [UIColor whiteColor];
-        [self.view addSubview:whiteBar];
-        
-        pageControl = [[UIPageControl alloc] init]; //SET a property of UIPageControl
-        pageControl.pageIndicatorTintColor = [UIColor grayColor];
-        pageControl.currentPageIndicatorTintColor = [UIColor lightGrayColor];
-        pageControl.frame = CGRectMake(screenWidth/2-100,self.view.frame.size.height-150,200,100);
-        pageControl.numberOfPages = 4; //as we added 3 diff views
-        pageControl.currentPage = 0;
-        
-        UIImageView* animatedImageView1 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 20,screenWidth,screenHeight)];
-        animatedImageView1.animationImages = [NSArray arrayWithObjects:
-                                             [UIImage imageNamed:@"splashscreen[1].jpg"],
-                                             [UIImage imageNamed:@"splashscreen[2].jpg"],
-                                             [UIImage imageNamed:@"splashscreen[3].jpg"],
-                                             [UIImage imageNamed:@"splashcreen[4].jpg"],
-                                             [UIImage imageNamed:@"splashcreen[5].jpg"],
-                                             [UIImage imageNamed:@"splashcreen[6].jpg"],
-                                             [UIImage imageNamed:@"splashcreen[7].jpg"],
-                                             [UIImage imageNamed:@"splashcreen[8].jpg"],
-                                             [UIImage imageNamed:@"splashcreen[9].jpg"],
-                                             [UIImage imageNamed:@"splashcreen[10].jpg"],
-                                              nil];
-        animatedImageView1.animationDuration = 2.0f;
-        animatedImageView1.animationRepeatCount = 1000;
-        [animatedImageView1 startAnimating];
-        [tutorial addSubview: animatedImageView1];
+//    }else{
+//        tutorial = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
+//        [self.view addSubview:tutorial];
+//        tutorial.contentSize = CGSizeMake(screenWidth*4, screenHeight-20);
+//        tutorial.contentSize = CGSizeMake(screenWidth*2, screenHeight-20);
+//        tutorial.contentSize = CGSizeMake(screenWidth, screenHeight-20);
+//        tutorial.backgroundColor = [UIColor whiteColor];
+//        tutorial.pagingEnabled = YES;
+//        tutorial.delegate = self;
+//        tutorial.showsHorizontalScrollIndicator = NO;
+//        
+//        UIView *whiteBar  = [[UIView alloc] initWithFrame: CGRectMake(0, 0, screenWidth, 20)];
+//        whiteBar.backgroundColor = [UIColor whiteColor];
+//        [self.view addSubview:whiteBar];
+//        
+//        pageControl = [[UIPageControl alloc] init]; //SET a property of UIPageControl
+//        pageControl.pageIndicatorTintColor = [UIColor grayColor];
+//        pageControl.currentPageIndicatorTintColor = [UIColor lightGrayColor];
+//        pageControl.frame = CGRectMake(screenWidth/2-100,self.view.frame.size.height-150,200,100);
+//        pageControl.numberOfPages = 4; //as we added 3 diff views
+//        pageControl.currentPage = 0;
+//        
+//        UIImageView* animatedImageView1 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 20,screenWidth,screenHeight)];
+//        animatedImageView1.animationImages = [NSArray arrayWithObjects:
+//                                             [UIImage imageNamed:@"splashscreen[1].jpg"],
+//                                             [UIImage imageNamed:@"splashscreen[2].jpg"],
+//                                             [UIImage imageNamed:@"splashscreen[3].jpg"],
+//                                             [UIImage imageNamed:@"splashcreen[4].jpg"],
+//                                             [UIImage imageNamed:@"splashcreen[5].jpg"],
+//                                             [UIImage imageNamed:@"splashcreen[6].jpg"],
+//                                             [UIImage imageNamed:@"splashcreen[7].jpg"],
+//                                             [UIImage imageNamed:@"splashcreen[8].jpg"],
+//                                             [UIImage imageNamed:@"splashcreen[9].jpg"],
+//                                             [UIImage imageNamed:@"splashcreen[10].jpg"],
+//                                              nil];
+//        animatedImageView1.animationDuration = 2.0f;
+//        animatedImageView1.animationRepeatCount = 1000;
+//        [animatedImageView1 startAnimating];
+//        [tutorial addSubview: animatedImageView1];
+//        
+//        //
+//        UIImage *image2 = [UIImage imageNamed:@"tour-page-two.jpg"];
+//        UIImageView *imageview2 = [[UIImageView alloc] initWithImage:image2];
+//        imageview2.frame = CGRectMake(screenWidth, 20,screenWidth,screenHeight);
+//        imageview2.contentMode = UIViewContentModeScaleAspectFill;
+//        [tutorial addSubview:imageview2];
+//        
+//        UIImageView* animatedImageView = [[UIImageView alloc] initWithFrame:CGRectMake(screenWidth*2, 20,screenWidth,screenHeight)];
+//        animatedImageView.animationImages = [NSArray arrayWithObjects:
+//                                             [UIImage imageNamed:@"tour-page-three-[1].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[2].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[3].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[4].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[5].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[6].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[7].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[8].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[9].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[10].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[11].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[12].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[13].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[14].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[15].jpg"],
+//                                             [UIImage imageNamed:@"tour-page-three-[16].jpg"], nil];
+//        animatedImageView.animationDuration = 3.0f;
+//        animatedImageView.animationRepeatCount = 1000;
+//        [animatedImageView startAnimating];
+//        [tutorial addSubview: animatedImageView];
         
         //
-        UIImage *image2 = [UIImage imageNamed:@"tour-page-two.jpg"];
-        UIImageView *imageview2 = [[UIImageView alloc] initWithImage:image2];
-        imageview2.frame = CGRectMake(screenWidth, 20,screenWidth,screenHeight);
-        imageview2.contentMode = UIViewContentModeScaleAspectFill;
-        [tutorial addSubview:imageview2];
-        
-        UIImageView* animatedImageView = [[UIImageView alloc] initWithFrame:CGRectMake(screenWidth*2, 20,screenWidth,screenHeight)];
-        animatedImageView.animationImages = [NSArray arrayWithObjects:
-                                             [UIImage imageNamed:@"tour-page-three-[1].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[2].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[3].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[4].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[5].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[6].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[7].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[8].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[9].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[10].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[11].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[12].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[13].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[14].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[15].jpg"],
-                                             [UIImage imageNamed:@"tour-page-three-[16].jpg"], nil];
-        animatedImageView.animationDuration = 3.0f;
-        animatedImageView.animationRepeatCount = 1000;
-        [animatedImageView startAnimating];
-        [tutorial addSubview: animatedImageView];
-        
-        //
-        UIImage *image4 = [UIImage imageNamed:@"tour-page-four.jpg"];
-        UIImageView *imageview4 = [[UIImageView alloc] initWithImage:image4];
-        imageview4.frame = CGRectMake(screenWidth*3, 20,screenWidth,screenHeight);
-        imageview4.contentMode = UIViewContentModeScaleAspectFill;
-        [tutorial addSubview:imageview4];
-
-        
-        [self.view addSubview:compose.view];
-        [self.view addSubview:publicFeed];
-        [self.view addSubview:bottomBar];
-//        [bottomBar setHidden:YES];
-
-        facebookBar = [[UIView alloc] init];
-        facebookBar.frame = CGRectMake(50, 12, screenWidth-100, 45);
-        //    [facebookBar setBackgroundColor:[UIColor colorWithRed: 59/255.0 green: 89/255.0 blue:152/255.0 alpha: 1.0]];
-        [facebookBar setBackgroundColor:[UIColor clearColor]];
-        facebookBar.layer.cornerRadius = 2.5;
-        [bottomBar addSubview:facebookBar];
-        
-        FBLoginView *loginView = [[FBLoginView alloc] initWithReadPermissions: @[@"public_profile", @"email", @"user_friends"]];
-        loginView.delegate = self;
-        [facebookBar addSubview:loginView];
-        
-        UITextField *myField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, facebookBar.frame.size.width, facebookBar.frame.size.height)];
-        myField.text = @"Log In With Facebook";
-        myField.textColor = [UIColor whiteColor];
-        myField.font = [UIFont fontWithName:@"HelveticaNeue-Light" size: 20.0];
-        myField.textAlignment = NSTextAlignmentCenter;
-        myField.userInteractionEnabled = NO;
-        //    [facebookBar addSubview:myField];
-        
-        CALayer *layer = facebookBar.layer;
-        
-        layer.shadowColor = [UIColor blackColor].CGColor;
-        layer.shadowOffset = CGSizeMake(0, 50);
-        layer.shadowOpacity = 0.2;
-        layer.shadowRadius = 50;
-        layer.masksToBounds = NO;
-        
-        layer = bottomBar.layer;
-        layer.shadowColor = (__bridge CGColorRef)([UIColor blackColor]);
-        layer.shadowOffset = CGSizeMake(0, -10);
-        layer.shadowOpacity = 0.2;
-        layer.shadowRadius = 10;
-        
-        UITapGestureRecognizer *touch = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(action)];
-        [bottomBar addGestureRecognizer:touch];
-        
-        
-        //        pan = UIPanGestureRecognizer(target:self, action:"pan:")
-        
-        UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(pan:)];
-        [bottomBar addGestureRecognizer:pan];
-        [self.view addSubview:pageControl];
-        
-        
-        UILabel *agree = [[UILabel alloc] initWithFrame:CGRectMake(0, bottomBar.frame.size.height-30, screenWidth, 30)];
-        agree.text = @"By logging in you are agreeing to the EULA";
-        agree.textAlignment = NSTextAlignmentCenter;
-        agree.font = [UIFont fontWithName:@"HelveticaNeue-Light" size: 12];
-        agree.textColor = [UIColor blueColor];
-        [bottomBar addSubview:agree];
-        [agree setUserInteractionEnabled:YES];
-        
-        UITapGestureRecognizer *ag  = [[UITapGestureRecognizer alloc] initWithTarget:self  action:@selector(agggg)];
-        [agree addGestureRecognizer:ag];
-        
-    }
+//        UIImage *image4 = [UIImage imageNamed:@"tour-page-four.jpg"];
+//        UIImageView *imageview4 = [[UIImageView alloc] initWithImage:image4];
+//        imageview4.frame = CGRectMake(screenWidth*3, 20,screenWidth,screenHeight);
+//        imageview4.contentMode = UIViewContentModeScaleAspectFill;
+//        [tutorial addSubview:imageview4];
+//
+//        
+//        [self.view addSubview:compose.view];
+//        [self.view addSubview:publicFeed];
+//        [self.view addSubview:bottomBar];
+//        
+//
+////        [bottomBar setHidden:YES];
+//
+//        facebookBar = [[UIView alloc] init];
+//        facebookBar.frame = CGRectMake(50, 12, screenWidth-100, 45);
+//        //    [facebookBar setBackgroundColor:[UIColor colorWithRed: 59/255.0 green: 89/255.0 blue:152/255.0 alpha: 1.0]];
+//        [facebookBar setBackgroundColor:[UIColor clearColor]];
+//        facebookBar.layer.cornerRadius = 2.5;
+//        [bottomBar addSubview:facebookBar];
+//        
+//        FBLoginView *loginView = [[FBLoginView alloc] initWithReadPermissions: @[@"public_profile", @"email", @"user_friends"]];
+//        loginView.delegate = self;
+//        [facebookBar addSubview:loginView];
+//        
+//        UITextField *myField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, facebookBar.frame.size.width, facebookBar.frame.size.height)];
+//        myField.text = @"Log In With Facebook";
+//        myField.textColor = [UIColor whiteColor];
+//        myField.font = [UIFont fontWithName:@"HelveticaNeue-Light" size: 20.0];
+//        myField.textAlignment = NSTextAlignmentCenter;
+//        myField.userInteractionEnabled = NO;
+//        //    [facebookBar addSubview:myField];
+//        
+//        CALayer *layer = facebookBar.layer;
+//        
+//        layer.shadowColor = [UIColor blackColor].CGColor;
+//        layer.shadowOffset = CGSizeMake(0, 50);
+//        layer.shadowOpacity = 0.2;
+//        layer.shadowRadius = 50;
+//        layer.masksToBounds = NO;
+//        
+//        layer = bottomBar.layer;
+//        layer.shadowColor = (__bridge CGColorRef)([UIColor blackColor]);
+//        layer.shadowOffset = CGSizeMake(0, -10);
+//        layer.shadowOpacity = 0.2;
+//        layer.shadowRadius = 10;
+//        
+//        UITapGestureRecognizer *touch = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(action)];
+//        [bottomBar addGestureRecognizer:touch];
+//        
+//        
+//        //        pan = UIPanGestureRecognizer(target:self, action:"pan:")
+//        
+//        UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(pan:)];
+//        [bottomBar addGestureRecognizer:pan];
+//        [self.view addSubview:pageControl];
+//        
+//        
+//        UILabel *agree = [[UILabel alloc] initWithFrame:CGRectMake(0, bottomBar.frame.size.height-30, screenWidth, 30)];
+//        agree.text = @"By logging in you are agreeing to the EULA";
+//        agree.textAlignment = NSTextAlignmentCenter;
+//        agree.font = [UIFont fontWithName:@"HelveticaNeue-Light" size: 12];
+//        agree.textColor = [UIColor blueColor];
+//        [bottomBar addSubview:agree];
+//        [agree setUserInteractionEnabled:YES];
+//        
+//        UITapGestureRecognizer *ag  = [[UITapGestureRecognizer alloc] initWithTarget:self  action:@selector(agggg)];
+//        [agree addGestureRecognizer:ag];
+//        
+//    }
     
     compose.view.frame = CGRectMake(0, -screenHeight, screenWidth, screenHeight);
     [publicFeed addSubview:ptv.view];
@@ -513,8 +515,38 @@
     
     // Register for HUD callbacks so we can remove it from the window at the right time
     refreshHUD.delegate = self;
+    PFInstallation *pfi = [PFInstallation currentInstallation];
+    PFUser *pfuser = [PFUser user];
+    pfuser.username = pfi.installationId;
+    pfuser.password = @"";
     
+    [pfuser signUpInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        if (!error) {
+            // Hooray! Let them use the app now.
+            PFInstallation *installation = [PFInstallation currentInstallation];
+            installation[@"user"] = [PFUser currentUser];
+            installation[@"installation_id"] = pfi.installationId;
+            [installation saveInBackground];
+        } else {
+            
+            
+            PFInstallation *installation = [PFInstallation currentInstallation];
+            [PFUser logInWithUsernameInBackground:installation.installationId password:@""
+                                            block:^(PFUser *pfuser, NSError *error) {
+                                                    NSLog(@"%@", pfuser);
+                                                    PFInstallation *installation = [PFInstallation currentInstallation];
+                                                    installation[@"user"] = [PFUser currentUser];
+                                                    installation[@"installation_id"] = pfi.installationId;
+                                                    [installation saveInBackground];
+                                              
+                                            }];
+        }
+    }];
     
+    UIView *search = [[UIView alloc] initWithFrame:CGRectMake(0, 60, screenWidth, 40)];
+    [search setBackgroundColor:[UIColor blackColor]];
+    [self.view addSubview:search];
+
 }
 -(void)launchStoryCreator{
     StoryCreatorViewController *storyVC = [[StoryCreatorViewController alloc] init];
@@ -755,25 +787,25 @@
         NSString *user = @"";
         NSString *name = @"";
         NSString *profile_picture = @"";
-        if([compose.anon isOn]){
+//        if([compose.anon isOn]){
             //            user = @"Anonymous";
             user = [NSString stringWithFormat:@"Anonymous-%@",[[defaults objectForKey:@"facebook_data"] valueForKey:@"id"]];
             name = @"Anonymous";
             
 //            name = [[defaults objectForKey:@"facebook_data"] objectForKey:@"name"];
             profile_picture = @"";
-        }else{
-            defaults = [NSUserDefaults standardUserDefaults];
-            user = [[defaults objectForKey:@"facebook_data"] valueForKey:@"id"];
-            name = [[defaults objectForKey:@"facebook_data"] objectForKey:@"name"];
-            
-            NSString *base  =@"graph.facebook.com/";
-            base = [base stringByAppendingString:[[defaults objectForKey:@"facebook_data"] valueForKey:@"id"]];
-            base = [base stringByAppendingString:@"/picture"];
-            base = [base stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-//            profile_picture = base;
-            profile_picture = @"";
-        }
+//        }else{
+//            defaults = [NSUserDefaults standardUserDefaults];
+//            user = [[defaults objectForKey:@"facebook_data"] valueForKey:@"id"];
+//            name = [[defaults objectForKey:@"facebook_data"] objectForKey:@"name"];
+//            
+//            NSString *base  =@"graph.facebook.com/";
+//            base = [base stringByAppendingString:[[defaults objectForKey:@"facebook_data"] valueForKey:@"id"]];
+//            base = [base stringByAppendingString:@"/picture"];
+//            base = [base stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+////            profile_picture = base;
+//            profile_picture = @"";
+//        }
         NSString *postString = @"";
         
         if([compose.imageURL isEqualToString:@""]){

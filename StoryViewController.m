@@ -178,16 +178,16 @@
     
         if([type isEqualToString:@"video"]){
             
-            NSArray *directoryPath = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-            NSString *videoPath =  [directoryPath objectAtIndex:0];
-            videoPath= [videoPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@/%@", self.title,filename]];
+            NSString *tmpDirectory = NSTemporaryDirectory();
+            NSString *videoPath =  tmpDirectory;
+            videoPath= [tmpDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"%@/%@", self.title,filename]];
 
             [self Play:videoPath];
         }else{
             UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height)];
             
-            NSArray *directoryPath = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-            NSString *imagePath =  [directoryPath objectAtIndex:0];
+            NSString *tmpDirectory = NSTemporaryDirectory();
+            NSString *imagePath =  tmpDirectory;
             imagePath= [imagePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@/%@", self.title,filename]];
             
             NSData *data = [NSData dataWithContentsOfFile:imagePath];

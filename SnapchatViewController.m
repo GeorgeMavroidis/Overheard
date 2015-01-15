@@ -282,8 +282,9 @@
 -(void)balanceData:(NSArray *)array forKey:(NSString *)key{
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *documentsDirectory = [paths objectAtIndex:0];
-    NSString *keyDirectory = [NSString stringWithFormat:@"%@/%@", documentsDirectory, key];
+    
+    NSString *tmpDirectory = NSTemporaryDirectory();
+    NSString *keyDirectory = [NSString stringWithFormat:@"%@/%@", tmpDirectory, key];
     NSArray *directoryContent = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:keyDirectory error:NULL];
     
     NSMutableArray *all_filenames = [[NSMutableArray alloc] init];
@@ -297,7 +298,7 @@
             
             NSString* filename = [NSString stringWithFormat:@"%@",[foo objectAtIndex: [foo count] -1]];
             
-            NSString  *filePath = [NSString stringWithFormat:@"%@/%@/%@", documentsDirectory, key, filename];
+            NSString  *filePath = [NSString stringWithFormat:@"%@/%@/%@",tmpDirectory, key, filename];
             
             [all_filenames addObject:filename];
             
@@ -312,7 +313,7 @@
     
     for(NSString *left in intermediate){
         
-        NSString  *filePath = [NSString stringWithFormat:@"%@/%@/%@", documentsDirectory, key, left];
+        NSString  *filePath = [NSString stringWithFormat:@"%@/%@/%@", tmpDirectory, key, left];
         NSError *error;
         if ([[NSFileManager defaultManager] isDeletableFileAtPath:filePath]) {
             BOOL success = [[NSFileManager defaultManager] removeItemAtPath:filePath error:&error];
@@ -522,14 +523,15 @@
         NSString* filename = [foo objectAtIndex: [foo count] -1];
         
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-        NSString *documentsDirectory = [paths objectAtIndex:0];
-        NSString *dataPath = [documentsDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"/%@", key]];
+        
+        NSString *tmpDirectory = NSTemporaryDirectory();
+        NSString *dataPath = [tmpDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"/%@", key]];
         
         NSError *error;
         if (![[NSFileManager defaultManager] fileExistsAtPath:dataPath])
             [[NSFileManager defaultManager] createDirectoryAtPath:dataPath withIntermediateDirectories:NO attributes:nil error:&error]; //Create folder
         
-        NSString  *filePath = [NSString stringWithFormat:@"%@/%@/%@", documentsDirectory, key, filename];
+        NSString  *filePath = [NSString stringWithFormat:@"%@/%@/%@", tmpDirectory, key, filename];
         
         BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filePath];
         if(!fileExists){
